@@ -401,6 +401,7 @@ dependencies = [
  "assert_approx_eq",
  "image",
  "rand",
+ "rayon",
 ]
 
 [[package]]

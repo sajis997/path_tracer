@@ -1,5 +1,5 @@
 
-use crate::vec::{Vec3,Point3, Color};
+use crate::vec::{Vec3,Point3};
 
 pub struct Ray {
     origo: Point3,
