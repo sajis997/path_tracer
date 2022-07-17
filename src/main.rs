@@ -21,7 +21,7 @@ fn ray_color(r: &Ray, world: &World, depth : u32) -> Color {
         return Color::new(0.0,0.0,0.0);
     }
 
-    if let Some(rec) = world.hit(r, 0.0, f64::INFINITY) {
+    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
         let target = rec.p + rec.normal + Vec3::random_in_unit_sphere();
         let r = Ray::new(rec.p, target - rec.p);
         0.5 * ray_color(&r, world, depth - 1)
@@ -75,7 +75,7 @@ fn main() {
     }
 
      
-    match buffer.save("lambertian.png") {
+    match buffer.save("shadow-acne.png") {
         Err(e) => panic!("Error writing file {}",e),
         Ok(()) => println!("Saving Done!")
     }    
