@@ -1,4 +1,4 @@
-
+//main.rs - is the crate root file
 
 mod vec; // to use Vec3 in the program, add a reference with mod keyword
 mod ray;
@@ -9,7 +9,7 @@ mod camera;
 
 use rand::prelude::*;
 use image::{RgbImage,ImageBuffer,Rgb};
-use vec::{Vec3,Color,Point3};
+use vec::{Color,Point3};
 use ray::Ray;
 use sphere::Sphere;
 use hit::{Hit,World};
@@ -31,13 +31,14 @@ fn main() {
     const ASPECT_RATIO: f64 = 16.0/ 9.0;
     const IMAGE_WIDTH: u32 = 800;
     const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u32;
-    const SAMPLES_PER_PIXEL: u32 = 500;
+    const SAMPLES_PER_PIXEL: u32 = 50;
     
     //image plane
     let mut buffer: RgbImage = ImageBuffer::new(IMAGE_WIDTH as u32,IMAGE_HEIGHT as u32);
 
     //world
-    let mut world = World::new();
+    let mut world = World::new(); // crate an empty world
+    
     world.push(Box::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
     world.push(Box::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
     
@@ -67,7 +68,7 @@ fn main() {
 
      
     match buffer.save("antialiasing.png") {
-        Err(e) => eprintln!("Error writing file {}",e),
+        Err(e) => panic!("Error writing file {}",e),
         Ok(()) => println!("Saving Done!")
     }    
 }
