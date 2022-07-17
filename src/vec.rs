@@ -64,6 +64,21 @@ impl Vec3 {
         [f(self.e[0]), f(self.e[1]), f(self.e[2])]
     }
 
+    pub fn random(r: Range<f64>) -> Vec3 {
+        let mut rng = rand::thread_rng();
+
+        Vec3 { e: [rng.gen_range(r.clone()),rng.gen_range(r.clone()),rng.gen_range(r.clone())] }
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let v = Vec3::random(-1.0..1.0);
+            if v.length() < 1.0 {
+                return v;
+            }
+        }
+    }
+
     pub fn format_color(self) -> String {
         format!("{} {} {}", (255.999 * self[0]) as u64,
                             (255.999 * self[1]) as u64,
