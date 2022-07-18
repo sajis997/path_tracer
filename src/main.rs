@@ -22,7 +22,7 @@ fn ray_color(r: &Ray, world: &World, depth : u32) -> Color {
     }
 
     if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
-        let target = rec.p + rec.normal + Vec3::random_in_unit_sphere();
+        let target = rec.p + Vec3::random_in_hemisphere(rec.normal);
         let r = Ray::new(rec.p, target - rec.p);
         0.5 * ray_color(&r, world, depth - 1)
     } else {
@@ -39,7 +39,7 @@ fn main() {
     const IMAGE_WIDTH: u32 = 800;
     const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u32;
     const SAMPLES_PER_PIXEL: u32 = 50;
-    const MAX_DEPTH: u32 = 5;
+    const MAX_DEPTH: u32 = 15;
     
     //image plane
     let mut buffer: RgbImage = ImageBuffer::new(IMAGE_WIDTH as u32,IMAGE_HEIGHT as u32);
@@ -75,7 +75,7 @@ fn main() {
     }
 
      
-    match buffer.save("shadow-acne.png") {
+    match buffer.save("alternative-lambertian-reflection.png") {
         Err(e) => panic!("Error writing file {}",e),
         Ok(()) => println!("Saving Done!")
     }    
