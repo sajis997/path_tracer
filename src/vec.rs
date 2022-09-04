@@ -59,12 +59,29 @@ impl Vec3 {
             if num < 0.0 {
                 0
             } else if num >= 1.0 {
-                255
+                255.99 as u8
             } else {
-                (num * 255.99) as u8
+                (num * 256.0) as u8
             }
         }
         [f(self.e[0]), f(self.e[1]), f(self.e[2])]
+    }
+
+    pub fn gamma_correction(&self, samples_per_pixel: u32) -> [u8; 3] {
+        [
+            (256.0
+                * (self.e[0] / (samples_per_pixel as f64))
+                    .sqrt()
+                    .clamp(0.0, 0.999)) as u8,
+            (256.0
+                * (self.e[1] / (samples_per_pixel as f64))
+                    .sqrt()
+                    .clamp(0.0, 0.999)) as u8,
+            (256.0
+                * (self.e[2] / (samples_per_pixel as f64))
+                    .sqrt()
+                    .clamp(0.0, 0.999)) as u8,
+        ]
     }
 
     pub fn random(r: Range<f64>) -> Vec3 {
