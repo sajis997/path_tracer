@@ -59,9 +59,9 @@ impl Vec3 {
             if num < 0.0 {
                 0
             } else if num >= 1.0 {
-                255
+                255.99 as u8
             } else {
-                (num * 255.99) as u8
+                (num * 256.0) as u8
             }
         }
         [f(self.e[0]), f(self.e[1]), f(self.e[2])]
