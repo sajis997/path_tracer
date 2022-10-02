@@ -32,22 +32,22 @@ impl Vec3 {
         self.e[2] // get the third element in the array
     }
 
-    pub fn dot(&self, other: Vec3) -> f64 {
+    pub fn dot(&self, other: &Vec3) -> f64 {
         self.x() * other.x() + self.y() * other.y() + self.z() * other.z()
     }
 
-    pub fn cross(self, other: Vec3) -> Vec3 {
+    pub fn cross(&self, other: &Vec3) -> Vec3 {
         Vec3 {
             e: [
-                self.e[1] * other.e[2] - self.e[2] * other.e[1],
+                self.e[1] * other.e[2] - self.e[2] * other.e[1], 
                 self.e[2] * other.e[0] - self.e[0] * other.e[2],
                 self.e[0] * other.e[1] - self.e[1] * other.e[0],
             ],
         }
     }
 
-    pub fn length(self) -> f64 {
-        self.dot(self).sqrt()
+    pub fn length(&self) -> f64 {
+        self.dot(&self).sqrt()
     }
 
     pub fn normalized(self) -> Vec3 {
@@ -105,7 +105,7 @@ impl Vec3 {
         }
     }
 
-    pub fn random_in_hemisphere(normal: Vec3) -> Vec3 {
+    pub fn random_in_hemisphere(normal: &Vec3) -> Vec3 {
         let in_unit_sphere = Self::random_in_unit_sphere();
         if in_unit_sphere.dot(normal) > 0.0 {
             in_unit_sphere
@@ -114,7 +114,7 @@ impl Vec3 {
         }
     }
 
-    pub fn format_color(self) -> String {
+    pub fn format_color(&self) -> String {
         format!(
             "{} {} {}",
             (255.999 * self[0]) as u64,
@@ -429,7 +429,7 @@ mod tests {
     fn vec_dot() {
         let vector1 = Vec3::new(1.0, 2.0, 3.0);
         let vector2 = Vec3::new(1.0, 5.0, 7.0);
-        let result = vector1.dot(vector2);
+        let result = vector1.dot(&vector2);
 
         assert_approx_eq!(32.0, result, 0.001);
     }
