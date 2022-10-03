@@ -70,17 +70,17 @@ impl Vec3 {
     pub fn gamma_correction(&self, samples_per_pixel: u32) -> [u8; 3] {
         [
             (256.0
-                * (self.e[0] / (samples_per_pixel as f64))
+                * (self.e[0] / (samples_per_pixel as f64 /* explicit conversion */))
                     .sqrt()
-                    .clamp(0.0, 0.999)) as u8,
+                    .clamp(0.0, 0.999)) as u8 /* explicit conversion */,
             (256.0
-                * (self.e[1] / (samples_per_pixel as f64))
+                * (self.e[1] / (samples_per_pixel as f64 /* explicit conversion */))
                     .sqrt()
-                    .clamp(0.0, 0.999)) as u8,
+                    .clamp(0.0, 0.999)) as u8 /* explicit conversion */,
             (256.0
-                * (self.e[2] / (samples_per_pixel as f64))
+                * (self.e[2] / (samples_per_pixel as f64 /* explicit conversion */))
                     .sqrt()
-                    .clamp(0.0, 0.999)) as u8,
+                    .clamp(0.0, 0.999)) as u8 /* explicit conversion */,
         ]
     }
 
@@ -130,6 +130,7 @@ impl Display for Vec3 {
     }
 }
 
+//implement Trits for the Vec3 type
 //negation operator
 impl Neg for Vec3 {
     type Output = Vec3;

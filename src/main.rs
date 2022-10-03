@@ -31,6 +31,9 @@ fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
 }
 
 fn main() {
+
+    println!("There are {} CPUs", num_cpus::get());
+
     //image setup
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: u32 = 800;
@@ -65,6 +68,7 @@ fn main() {
             pixel_color += ray_color(&ray, &world, MAX_DEPTH);
         }
 
+        //gamma correct the pixel color
         *pixel = Rgb(pixel_color.gamma_correction(SAMPLES_PER_PIXEL));
     }
 

@@ -8,6 +8,7 @@ authors = ["Sajjadul Islam <sajjadul.islam.bd@proton.me>"]
 
 [dependencies]
 assert_approx_eq = "*"
+num_cpus = "*"
 rand = "*"
 image = "*"
 rayon = "*"

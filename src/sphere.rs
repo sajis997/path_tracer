@@ -8,8 +8,8 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Sphere {
-        Sphere {
+    pub fn new(center: Point3, radius: f64) -> Self {
+        Self {
             center:center,
             radius:radius
         }
