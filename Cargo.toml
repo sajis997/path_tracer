@@ -7,10 +7,8 @@ authors = ["Sajjadul Islam <sajjadul.islam.bd@proton.me>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-assert_approx_eq = "*"
-num_cpus = "*"
-rand = "*"
-image = "*"
-rayon = "*"
-
-
+assert_approx_eq = "1.1.0"
+rand = "0.8.5"
+image = "0.24.4"
+rayon = "1.5.3"
+indicatif = {version = "0.16", features = ["rayon"]}
