@@ -1,11 +1,11 @@
-use crate::vec::{Vec3,Point3};
 use crate::ray::Ray;
+use crate::vec::{Point3, Vec3};
 
 pub struct Camera {
     origin: Point3,
     lower_left_corner: Point3,
     horizontal: Vec3,
-    vertical: Vec3
+    vertical: Vec3,
 }
 
 impl Camera {
@@ -15,21 +15,23 @@ impl Camera {
         const VIEWPORT_WIDTH: f64 = ASPECT_RATIO * VIEWPORT_HEIGHT;
         const FOCAL_LENGTH: f64 = 1.0;
 
-        let orig = Point3::new(0.0,0.0,0.0);
-        let h = Vec3::new(VIEWPORT_WIDTH,0.0,0.0);
-        let v = Vec3::new(0.0,VIEWPORT_HEIGHT,0.0);
-        let llc = orig - h / 2.0 - v / 2.0 - Vec3::new(0.0,0.0,FOCAL_LENGTH);
+        let orig = Point3::new(0.0, 0.0, 0.0);
+        let h = Vec3::new(VIEWPORT_WIDTH, 0.0, 0.0);
+        let v = Vec3::new(0.0, VIEWPORT_HEIGHT, 0.0);
+        let llc = orig - h / 2.0 - v / 2.0 - Vec3::new(0.0, 0.0, FOCAL_LENGTH);
 
         Camera {
             origin: orig,
             horizontal: h,
             vertical: v,
-            lower_left_corner: llc
+            lower_left_corner: llc,
         }
     }
 
     pub fn get_ray(&self, u: f64, v: f64) -> Ray {
-        Ray::new(self.origin,
-                 self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin)
+        Ray::new(
+            self.origin,
+            self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin,
+        )
     }
 }

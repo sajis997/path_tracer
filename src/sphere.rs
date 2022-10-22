@@ -1,36 +1,33 @@
-use crate::vec::{Vec3,Point3};
+use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
-use crate::hit::{Hit,HitRecord};
+use crate::vec::{Point3, Vec3};
 
 pub struct Sphere {
     center: Point3,
-    radius: f64
+    radius: f64,
 }
 
 impl Sphere {
     pub fn new(center: Point3, radius: f64) -> Self {
-        Self {
-            center:center,
-            radius:radius
-        }
+        Self { center, radius }
     }
 }
 
 impl Hit for Sphere {
-    fn hit(&self, r : &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         let oc = r.origin() - self.center;
         let a = r.direction().length().powi(2);
         let half_b = oc.dot(&r.direction());
         let c = oc.length().powi(2) - self.radius * self.radius;
         let discriminant = half_b * half_b - a * c;
-    
+
         if discriminant < 0.0 {
             return None;
         }
 
         //find the nearest root that lies in the acceptable range
         let sqrtd = discriminant.sqrt();
-        let mut root = (-half_b  - sqrtd) / a;
+        let mut root = (-half_b - sqrtd) / a;
         if root < t_min || t_max < root {
             root = (-half_b - sqrtd) / a;
             if root < t_min || t_max < root {
@@ -38,16 +35,15 @@ impl Hit for Sphere {
             }
         }
 
-        
         let mut rec = HitRecord {
             t: root,
             p: r.at(root),
-            normal: Vec3::new(0.0,0.0,0.0),
-            front_face: false
+            normal: Vec3::new(0.0, 0.0, 0.0),
+            front_face: false,
         };
 
         let outward_normal = (rec.p - self.center) / self.radius;
-        rec.set_face_normal(r,outward_normal);
+        rec.set_face_normal(r, outward_normal);
 
         Some(rec)
     }

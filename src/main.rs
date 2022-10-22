@@ -9,14 +9,14 @@ mod vec; // to use Vec3 in the program, add a reference with mod keyword
 use camera::Camera;
 use hit::{Hit, World};
 use image::{ImageBuffer, Rgb, RgbImage};
-use indicatif::{ProgressBar, ProgressFinish,ProgressStyle, ProgressIterator};
+use indicatif::{ProgressBar, ProgressFinish, ProgressIterator, ProgressStyle};
 use rand::prelude::*;
 use ray::Ray;
 use sphere::Sphere;
 use vec::{Color, Point3, Vec3};
 
 fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
-    if depth <= 0 {
+    if depth == 0 {
         return Color::new(0.0, 0.0, 0.0);
     }
 
@@ -32,7 +32,6 @@ fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
 }
 
 fn main() {
-
     //image setup
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: u32 = 800;
@@ -64,7 +63,6 @@ fn main() {
             .progress_chars("#>-")
             .on_finish(ProgressFinish::WithMessage("-- Done!".into())),
     );
-    
 
     for (x, y, pixel) in buffer.enumerate_pixels_mut().progress_with(bar) {
         let mut pixel_color = Color::new(0.0, 0.0, 0.0);

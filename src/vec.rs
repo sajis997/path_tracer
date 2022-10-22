@@ -39,7 +39,7 @@ impl Vec3 {
     pub fn cross(&self, other: &Vec3) -> Vec3 {
         Vec3 {
             e: [
-                self.e[1] * other.e[2] - self.e[2] * other.e[1], 
+                self.e[1] * other.e[2] - self.e[2] * other.e[1],
                 self.e[2] * other.e[0] - self.e[0] * other.e[2],
                 self.e[0] * other.e[1] - self.e[1] * other.e[0],
             ],
@@ -47,7 +47,7 @@ impl Vec3 {
     }
 
     pub fn length(&self) -> f64 {
-        self.dot(&self).sqrt()
+        self.dot(self).sqrt()
     }
 
     pub fn normalized(self) -> Vec3 {
@@ -70,17 +70,17 @@ impl Vec3 {
     pub fn gamma_correction(&self, samples_per_pixel: u32) -> [u8; 3] {
         [
             (256.0
-                * (self.e[0] / (samples_per_pixel as f64 /* explicit conversion */))
+                * (self.e[0] / (samples_per_pixel as f64/* explicit conversion */))
                     .sqrt()
-                    .clamp(0.0, 0.999)) as u8 /* explicit conversion */,
+                    .clamp(0.0, 0.999)) as u8, /* explicit conversion */
             (256.0
-                * (self.e[1] / (samples_per_pixel as f64 /* explicit conversion */))
+                * (self.e[1] / (samples_per_pixel as f64/* explicit conversion */))
                     .sqrt()
-                    .clamp(0.0, 0.999)) as u8 /* explicit conversion */,
+                    .clamp(0.0, 0.999)) as u8, /* explicit conversion */
             (256.0
-                * (self.e[2] / (samples_per_pixel as f64 /* explicit conversion */))
+                * (self.e[2] / (samples_per_pixel as f64/* explicit conversion */))
                     .sqrt()
-                    .clamp(0.0, 0.999)) as u8 /* explicit conversion */,
+                    .clamp(0.0, 0.999)) as u8, /* explicit conversion */
         ]
     }
 
