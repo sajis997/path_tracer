@@ -114,6 +114,11 @@ impl Vec3 {
         }
     }
 
+    pub fn near_zero(&self) -> bool {
+        const EPS: f64 = 1.0e-8;
+        self[0].abs() < EPS && self[1].abs() < EPS && self[2].abs() < EPS
+    }
+
     pub fn format_color(&self) -> String {
         format!(
             "{} {} {}",
@@ -121,6 +126,10 @@ impl Vec3 {
             (255.999 * self[1]) as u64,
             (255.999 * self[2]) as u64
         )
+    }
+
+    pub fn reflect(&self, n: &Vec3) -> Vec3 {
+        *self - 2.0 * self.dot(n) * *n
     }
 }
 
