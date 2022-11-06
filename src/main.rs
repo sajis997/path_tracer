@@ -69,8 +69,14 @@ fn main() {
     world.push(Box::new(sphere_left_inner));
     world.push(Box::new(sphere_right));
 
-    //camera setup
-    let cam = Camera::new();
+    // Camera
+    let cam = Camera::new(
+        Point3::new(-2.0, 2.0, 1.0),
+        Point3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        90.0,
+        ASPECT_RATIO,
+    );
     let mut rng = rand::thread_rng();
 
     println!("Rendering Scene ...");
@@ -103,7 +109,7 @@ fn main() {
         *pixel = Rgb(pixel_color.gamma_correction(SAMPLES_PER_PIXEL));
     }
 
-    match buffer.save("schlick-approximation.png") {
+    match buffer.save("distant-view.png") {
         Err(e) => panic!("Error writing file {}", e),
         Ok(()) => println!("Saving Done!"),
     }
