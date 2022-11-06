@@ -11,7 +11,7 @@ use std::rc::Rc;
 
 use crate::camera::Camera;
 use crate::hit::{Hit, World};
-use crate::material::{Lambertian, Metal};
+use crate::material::{Dielectric, Lambertian, Metal};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec::{Color, Point3, Vec3};
@@ -52,8 +52,8 @@ fn main() {
     let mut world = World::new(); // crate an empty world
 
     let mat_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
-    let mat_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
-    let mat_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
+    let mat_center = Rc::new(Dielectric::new(1.5));
+    let mat_left = Rc::new(Dielectric::new(1.5));
     let mat_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.1));
 
     let sphere_ground = Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0, mat_ground);
@@ -100,7 +100,7 @@ fn main() {
         *pixel = Rgb(pixel_color.gamma_correction(SAMPLES_PER_PIXEL));
     }
 
-    match buffer.save("metal-fuzziness.png") {
+    match buffer.save("snells-law.png") {
         Err(e) => panic!("Error writing file {}", e),
         Ok(()) => println!("Saving Done!"),
     }
