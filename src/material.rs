@@ -74,8 +74,16 @@ impl Scatter for Dielectric {
         };
 
         let unit_direction = r_in.direction().normalized();
-        let refracted = unit_direction.refract(&rec.normal, refraction_ratio);
-        let scattered = Ray::new(rec.p, refracted);
+        let cos_theta = ((-1.0) * unit_direction).dot(&rec.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
+
+        let direction = if refraction_ratio * sin_theta > 1.0 {
+            unit_direction.reflect(&rec.normal)
+        } else {
+            unit_direction.refract(&rec.normal, refraction_ratio)
+        };
+
+        let scattered = Ray::new(rec.p, direction);
 
         Some((Color::new(1.0, 1.0, 1.0), scattered))
     }
