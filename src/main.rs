@@ -70,12 +70,20 @@ fn main() {
     world.push(Box::new(sphere_right));
 
     // Camera
+    let lookfrom = Point3::new(3.0, 3.0, 2.0);
+    let lookat = Point3::new(0.0, 0.0, -1.0);
+    let vup = Vec3::new(0.0, 1.0, 0.0);
+    let dist_to_focus = (lookfrom - lookat).length();
+    let aperture = 2.0;
+
     let cam = Camera::new(
-        Point3::new(-2.0, 2.0, 1.0),
-        Point3::new(0.0, 0.0, -1.0),
-        Vec3::new(0.0, 1.0, 0.0),
+        lookfrom,
+        lookat,
+        vup,
         20.0,
         ASPECT_RATIO,
+        aperture,
+        dist_to_focus,
     );
     let mut rng = rand::thread_rng();
 
@@ -109,7 +117,7 @@ fn main() {
         *pixel = Rgb(pixel_color.gamma_correction(SAMPLES_PER_PIXEL));
     }
 
-    match buffer.save("zoom-in.png") {
+    match buffer.save("defocus-blur.png") {
         Err(e) => panic!("Error writing file {}", e),
         Ok(()) => println!("Saving Done!"),
     }
