@@ -14,12 +14,13 @@ use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec::{Color, Point3, Vec3};
 
-use image::Rgb;
-use linya::{Bar, Progress};
+use image::{Progress, Rgb};
+use indicatif::{
+    MultiProgress, ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle,
+};
 use rand::prelude::*;
 use rayon::prelude::*;
 use std::sync::Arc;
-use std::sync::Mutex;
 
 fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
     if depth <= 0 {
@@ -100,9 +101,9 @@ fn random_scene() -> World {
 fn main() {
     //image setup
     const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const IMAGE_WIDTH: u32 = 800;
+    const IMAGE_WIDTH: u32 = 1200;
     const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u32;
-    const SAMPLES_PER_PIXEL: u32 = 100;
+    const SAMPLES_PER_PIXEL: u32 = 500;
     const MAX_DEPTH: u32 = 50;
     const CHANNELS: u32 = 3;
 
@@ -136,44 +137,45 @@ fn main() {
         .enumerate()
         .collect();
 
-    let progress = Mutex::new(Progress::new());
+    let style = ProgressStyle::default_bar().template(
+        "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
+    );
+    let bar = ProgressBar::new(IMAGE_HEIGHT as u64);
+    bar.set_style(style.unwrap().progress_chars("#>-"));
 
     /*
         1. converts the collection into parallel iterator - each band within the bands is assigned to the iterator that executes in parallel
         2.
     */
-    bands.into_par_iter().for_each(|(i, band)| {
-        let bar: Bar = progress
-            .lock()
-            .unwrap()
-            .bar(50, format!("Rendering Scanline {}", i));
-        // get the image band - in other words the scanline
-        // go through all the pixels within the scanline
-        for x in 0..IMAGE_WIDTH {
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+    bands
+        .into_par_iter()
+        .progress_with(bar.with_finish(ProgressFinish::WithMessage("-- Done!".into())))
+        .for_each(|(i, band)| {
+            // get the image band - in other words the scanline
+            // go through all the pixels within the scanline
+            for x in 0..IMAGE_WIDTH {
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-            for _ in 0..SAMPLES_PER_PIXEL {
-                let mut rng = rand::thread_rng();
-                let random_u: f64 = rng.gen();
-                let random_v: f64 = rng.gen();
+                for _ in 0..SAMPLES_PER_PIXEL {
+                    let mut rng = rand::thread_rng();
+                    let random_u: f64 = rng.gen();
+                    let random_v: f64 = rng.gen();
 
-                let u = ((x as f64) + random_u) / ((IMAGE_WIDTH - 1) as f64);
-                let v = 1.0 - (((i as f64) + random_v) / ((IMAGE_HEIGHT - 1) as f64));
-                let ray = cam.get_ray(u, v);
+                    let u = ((x as f64) + random_u) / ((IMAGE_WIDTH - 1) as f64);
+                    let v = 1.0 - (((i as f64) + random_v) / ((IMAGE_HEIGHT - 1) as f64));
+                    let ray = cam.get_ray(u, v);
 
-                pixel_color += ray_color(&ray, &world, MAX_DEPTH);
+                    pixel_color += ray_color(&ray, &world, MAX_DEPTH);
+                }
+
+                // conduct gamma correction over the pixel
+                let pixel = Rgb(pixel_color.gamma_correction(SAMPLES_PER_PIXEL));
+
+                band[(x * CHANNELS) as usize] = pixel[0];
+                band[(x * CHANNELS + 1) as usize] = pixel[1];
+                band[(x * CHANNELS + 2) as usize] = pixel[2];
             }
-
-            // conduct gamma correction over the pixel
-            let pixel = Rgb(pixel_color.gamma_correction(SAMPLES_PER_PIXEL));
-
-            band[(x * CHANNELS) as usize] = pixel[0];
-            band[(x * CHANNELS + 1) as usize] = pixel[1];
-            band[(x * CHANNELS + 2) as usize] = pixel[2];
-
-            progress.lock().unwrap().inc_and_draw(&bar, x as usize);
-        }
-    });
+        });
 
     //save the raw data
     match image::save_buffer(
@@ -184,6 +186,6 @@ fn main() {
         image::ColorType::Rgb8,
     ) {
         Err(e) => panic!("Error writing file {}", e),
-        Ok(()) => println!("Saving Done"),
+        Ok(()) => println!("Saving of Rendered Image is Done"),
     };
 }
