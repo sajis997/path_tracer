@@ -145,7 +145,7 @@ fn main() {
 
     /*
         1. converts the collection into parallel iterator - each band within the bands is assigned to the iterator that executes in parallel
-        2.
+        2. for each band we loop though the pixels and accumulate pixel color with multi-sampling
     */
     bands
         .into_par_iter()
