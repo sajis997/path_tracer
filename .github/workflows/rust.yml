@@ -61,6 +61,7 @@ jobs:
           command: test
 
   audit:
+    name: Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
