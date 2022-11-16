@@ -20,6 +20,7 @@ jobs:
           command: build
           args: --release --all-features
       - uses: actions-rs/install@v0.1
-        with: cargo-audit
-        version: latest
-        use-tool-cache: true
+        with: 
+          crate: cargo-audit
+          version: latest
+          use-tool-cache: true
