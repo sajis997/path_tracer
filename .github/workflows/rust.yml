@@ -1,5 +1,11 @@
 name: CI
-on: [push]
+on: 
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+env:
+  CARGO_TERM_COLOR: always
 jobs:
   build_and_test:
     name: Rust project - Path Tracer
@@ -13,3 +19,8 @@ jobs:
         with:
           command: build
           args: --release --all-features
+      - uses: actions-rs/install@v0.1
+        with: 
+          crate: cargo-audit
+          version: latest
+          use-tool-cache: true

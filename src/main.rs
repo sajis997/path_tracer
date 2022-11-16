@@ -14,9 +14,9 @@ use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec::{Color, Point3, Vec3};
 
-use image::{Progress, Rgb};
+use image::Rgb;
 use indicatif::{
-    MultiProgress, ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle,
+    ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle,
 };
 use rand::prelude::*;
 use rayon::prelude::*;
