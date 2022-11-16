@@ -5,6 +5,7 @@ env:
 jobs:
   check:
     name: Check
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -24,6 +25,7 @@ jobs:
 
   build:
     name: Build
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -45,6 +47,7 @@ jobs:
 
   test:
     name: Test Suite
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -62,6 +65,7 @@ jobs:
 
   audit:
     name: Audit
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
