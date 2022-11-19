@@ -1,5 +1,6 @@
 //main.rs - is the crate root file
 
+mod aabb;
 mod camera;
 mod hit;
 mod material;
@@ -14,10 +15,8 @@ use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::vec::{Color, Point3, Vec3};
 
-use image::{Progress, Rgb};
-use indicatif::{
-    MultiProgress, ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle,
-};
+use image::Rgb;
+use indicatif::{ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle};
 use rand::prelude::*;
 use rayon::prelude::*;
 use std::sync::Arc;
@@ -101,7 +100,7 @@ fn random_scene() -> World {
 fn main() {
     //image setup
     const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const IMAGE_WIDTH: u32 = 1200;
+    const IMAGE_WIDTH: u32 = 800;
     const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u32;
     const SAMPLES_PER_PIXEL: u32 = 500;
     const MAX_DEPTH: u32 = 50;
