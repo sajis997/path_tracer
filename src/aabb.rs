@@ -162,7 +162,7 @@ impl Aabb {
         size.x() * size.y() * size.z()
     }
 
-    pub fn larget_axis(&self) -> Axis {
+    pub fn largest_axis(&self) -> Axis {
         let size = self.size();
 
         if size.x() > size.y() &&
@@ -368,5 +368,15 @@ mod tests {
         let aabb = Aabb::new(min,max);
         let volume = aabb.volume();
         assert!(volume == 8.0);
+    }
+
+    #[test]
+    fn largest_axis_test() {
+        let min = Point3::new(-100.0,0.0,0.0);
+        let max = Point3::new(100.0,0.0,0.0);
+    
+        let aabb = Aabb::new(min, max);
+        let axis = aabb.largest_axis();
+        assert!(axis == Axis::X);        
     }
 }
