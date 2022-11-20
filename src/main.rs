@@ -7,6 +7,7 @@ mod material;
 mod ray;
 mod sphere;
 mod vec; // to use Vec3 in the program, add a reference with mod keyword
+mod axis;
 
 use crate::camera::Camera;
 use crate::hit::{Hit, World};

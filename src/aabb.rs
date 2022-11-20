@@ -1,9 +1,10 @@
-use crate::vec::{Point3, Vec3};
 use std::f64;
 use std::f64::EPSILON;
 use std::fmt;
 use std::ops::Index;
 
+use crate::vec::{Point3, Vec3};
+use crate::axis::Axis;
 pub struct Aabb {
     min: Point3, // minimum coordinate
     max: Point3, // maximum coordinate
@@ -159,6 +160,21 @@ impl Aabb {
     pub fn volume(&self) -> f64 {
         let size = self.size();
         size.x() * size.y() * size.z()
+    }
+
+    pub fn larget_axis(&self) -> Axis {
+        let size = self.size();
+
+        if size.x() > size.y() &&
+           size.x() > size.z() {
+            Axis::X
+           }
+        else if size.y() > size.z() {
+            Axis::Y
+        }
+        else {
+            Axis::Z
+        }
     }
 }
 
