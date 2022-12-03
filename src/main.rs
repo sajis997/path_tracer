@@ -20,7 +20,9 @@ use indicatif::{
 };
 use rand::prelude::*;
 use rayon::prelude::*;
+use std::path::Path;
 use std::sync::Arc;
+use std::fs;
 
 fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
     if depth <= 0 {
@@ -101,11 +103,23 @@ fn random_scene() -> World {
 fn main() {
     //image setup
     const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const IMAGE_WIDTH: u32 = 1200;
+    const IMAGE_WIDTH: u32 = 800;
     const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u32;
     const SAMPLES_PER_PIXEL: u32 = 500;
     const MAX_DEPTH: u32 = 50;
     const CHANNELS: u32 = 3;
+    const IMAGE_OUT_DIR: &str = "output";
+    const IMAGE_FILE_NAME: &str = "parallel-rendering.png";
+
+    //if let Some(p) = file_path.parent() { fs::create_dir_all(p)? }; fs::write(file_path, file_contents)?;    
+    let folder_creation = fs::create_dir_all(IMAGE_OUT_DIR);
+    
+    if !folder_creation.is_ok() {
+        panic!("Error creating the output folder");
+    }
+
+    let path = Path::new(".");
+    let dirs = path.join(IMAGE_OUT_DIR).join(IMAGE_FILE_NAME);    
 
     //world
     let world = random_scene(); // crate an empty world
@@ -179,7 +193,7 @@ fn main() {
 
     //save the raw data
     match image::save_buffer(
-        "parallel-rendering.png",
+        dirs,
         &buffer,
         IMAGE_WIDTH,
         IMAGE_HEIGHT,
