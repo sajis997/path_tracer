@@ -2,7 +2,6 @@ name: Check Build Test and Audit Path Tracer
 on: [push,pull_request]
 env:
   CARGO_TERM_COLOR: always
-  # will be discarded
   check:
     name: Check
     timeout-minutes: 30
