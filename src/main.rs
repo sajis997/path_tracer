@@ -1,45 +1,50 @@
 //main.rs - is the crate root file
 
+// declare the following modules. The compiler will look for the module's code
+// in the following places:
+// 1. src/*
 mod aabb;
+mod axis;
 mod camera;
 mod hit;
 mod material;
 mod ray;
 mod sphere;
-mod vec; // to use Vec3 in the program, add a reference with mod keyword
-mod axis;
+mod util;
 
+
+// the following use keywords will bring the paths into the scope
 use crate::camera::Camera;
 use crate::hit::{Hit, World};
 use crate::material::{Dielectric, Lambertian, Metal};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
-use crate::vec::{Color, Point3, Vec3};
+
 
 use image::Rgb;
-use indicatif::{
-    ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle,
-};
+use glam::Vec3;
+use indicatif::{ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle};
 use rand::prelude::*;
 use rayon::prelude::*;
+use util::{Color, Point3, Util};
+use std::fs;
 use std::path::Path;
 use std::sync::Arc;
-use std::fs;
 
 fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
-    if depth <= 0 {
+    if depth == 0 {
         return Color::new(0.0, 0.0, 0.0);
     }
 
-    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
+    if let Some(rec) = world.hit(r, 0.001, f32::INFINITY) {
         if let Some((attenuation, scattered)) = rec.mat.scatter(r, &rec) {
             attenuation * ray_color(&scattered, world, depth - 1)
         } else {
             Color::new(0.0, 0.0, 0.0)
         }
     } else {
-        let unit_direction = r.direction().normalized();
-        let t = 0.5 * (unit_direction.y() + 1.0);
+        let unit_direction = r.direction().normalize();
+        let t = 0.5 * (unit_direction.y + 1.0);
         (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
     }
 }
@@ -57,21 +62,21 @@ fn random_scene() -> World {
         for b in -11..=11 {
             let choose_mat: f64 = rng.gen();
             let center = Point3::new(
-                (a as f64) + rng.gen_range(0.0..0.9),
+                (a as f32) + rng.gen_range(0.0..0.9),
                 0.2,
-                (b as f64) + rng.gen_range(0.0..0.9),
+                (b as f32) + rng.gen_range(0.0..0.9),
             );
 
             if choose_mat < 0.8 {
                 // Diffuse
-                let albedo = Color::random(0.0..1.0) * Color::random(0.0..1.0);
+                let albedo = Util::random(0.0..1.0) * Util::random(0.0..1.0);
                 let sphere_mat = Arc::new(Lambertian::new(albedo));
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
 
                 world.push(Box::new(sphere));
             } else if choose_mat < 0.95 {
                 // Metal
-                let albedo = Color::random(0.4..1.0);
+                let albedo = Util::random(0.4..1.0);
                 let fuzz = rng.gen_range(0.0..0.5);
                 let sphere_mat = Arc::new(Metal::new(albedo, fuzz));
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
@@ -102,26 +107,25 @@ fn random_scene() -> World {
     world
 }
 
-fn main() {
     //image setup
-    const ASPECT_RATIO: f64 = 3.0 / 2.0;
+    const ASPECT_RATIO: f32 = 3.0 / 2.0;
     const IMAGE_WIDTH: u32 = 800;
-    const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u32;
+    const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
     const SAMPLES_PER_PIXEL: u32 = 500;
     const MAX_DEPTH: u32 = 50;
     const CHANNELS: u32 = 3;
     const IMAGE_OUT_DIR: &str = "output";
-    const IMAGE_FILE_NAME: &str = "parallel-rendering.png";
+    const IMAGE_FILE_NAME: &str = "parallel-rendering-bigger-4.png";
 
-    //if let Some(p) = file_path.parent() { fs::create_dir_all(p)? }; fs::write(file_path, file_contents)?;    
+fn main() {
     let folder_creation = fs::create_dir_all(IMAGE_OUT_DIR);
-    
+
     if !folder_creation.is_ok() {
         panic!("Error creating the output folder");
     }
 
     let path = Path::new(".");
-    let dirs = path.join(IMAGE_OUT_DIR).join(IMAGE_FILE_NAME);    
+    let dirs = path.join(IMAGE_OUT_DIR).join(IMAGE_FILE_NAME);
 
     //world
     let world = random_scene(); // crate an empty world
@@ -174,18 +178,18 @@ fn main() {
 
                 for _ in 0..SAMPLES_PER_PIXEL {
                     let mut rng = rand::thread_rng();
-                    let random_u: f64 = rng.gen();
-                    let random_v: f64 = rng.gen();
+                    let random_u: f32 = rng.gen();
+                    let random_v: f32 = rng.gen();
 
-                    let u = ((x as f64) + random_u) / ((IMAGE_WIDTH - 1) as f64);
-                    let v = 1.0 - (((i as f64) + random_v) / ((IMAGE_HEIGHT - 1) as f64));
+                    let u = ((x as f32) + random_u) / ((IMAGE_WIDTH - 1) as f32);
+                    let v = 1.0 - (((i as f32) + random_v) / ((IMAGE_HEIGHT - 1) as f32));
                     let ray = cam.get_ray(u, v);
 
                     pixel_color += ray_color(&ray, &world, MAX_DEPTH);
                 }
 
                 // conduct gamma correction over the pixel
-                let pixel = Rgb(pixel_color.gamma_correction(SAMPLES_PER_PIXEL));
+                let pixel = Rgb(Util::gamma_correction(&pixel_color,SAMPLES_PER_PIXEL));
 
                 band[(x * CHANNELS) as usize] = pixel[0];
                 band[(x * CHANNELS + 1) as usize] = pixel[1];
