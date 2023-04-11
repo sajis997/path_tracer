@@ -167,7 +167,7 @@ fn main() {
         1. converts the collection into parallel iterator - each band within the bands is assigned to the iterator that executes in parallel
         2. for each band we loop though the pixels and accumulate pixel color with multi-sampling
     */
-    bands
+    bands       
         .into_par_iter()
         .progress_with(bar.with_finish(ProgressFinish::WithMessage("-- Done!".into())))
         .for_each(|(i, band)| {

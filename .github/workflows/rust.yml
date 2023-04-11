@@ -1,4 +1,5 @@
 name: Check Build Test and Audit Path Tracer
+run-name: ${{ github.actor }} is building, testing the Path Tracer
 on: [push,pull_request]
 env:
   CARGO_TERM_COLOR: always
