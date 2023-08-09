@@ -1,5 +1,4 @@
 use glam::Vec3;
-
 use crate::ray::Ray;
 use crate::util::{Point3, Util};
 
@@ -36,7 +35,7 @@ impl Camera {
         aspect_ratio: f32,
         aperture: f32,
         focus_dist: f32,
-    ) -> Camera {
+    ) -> Self {
         // Vertical field-of-view in degrees
         let theta = std::f32::consts::PI / 180.0 * vfov;
         let viewport_height = 2.0 * (theta / 2.0).tan();
@@ -56,8 +55,8 @@ impl Camera {
             horizontal: h,
             vertical: v,
             lower_left_corner: llc,
-            cu: cu,
-            cv: cv,
+            cu,
+            cv,
             lens_radius: aperture / 2.0,
         }
     }

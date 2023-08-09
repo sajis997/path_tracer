@@ -19,7 +19,7 @@ impl Lambertian {
 }
 
 impl Scatter for Lambertian {
-    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+    fn scatter(&self, _r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
         let mut scatter_direction = rec.normal + Util::random_in_unit_sphere().normalize();
         if Util::near_zero(&scatter_direction) {
             scatter_direction = rec.normal;
@@ -37,14 +37,14 @@ pub struct Metal {
 }
 
 impl Metal {
-    pub fn new(a: Color, f: f32) -> Metal {
+    pub fn new(a: Color, f: f32) -> Self {
         Metal { albedo: a, fuzz: f }
     }
 }
 
 impl Scatter for Metal {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
-        let reflected = Util::reflect(&r_in.direction(),&rec.normal).normalize();
+        let reflected = Util::reflect(&r_in.direction(), &rec.normal).normalize();
         let scattered = Ray::new(rec.p, reflected + self.fuzz * Util::random_in_unit_sphere());
 
         if scattered.direction().dot(rec.normal) > 0.0 {
@@ -60,7 +60,7 @@ pub struct Dielectric {
 }
 
 impl Dielectric {
-    pub fn new(index_of_refraction: f32) -> Dielectric {
+    pub fn new(index_of_refraction: f32) -> Self {
         Dielectric {
             ir: index_of_refraction,
         }
@@ -96,9 +96,9 @@ impl Scatter for Dielectric {
         let will_reflect = rng.gen::<f32>() < Self::reflectance(cos_theta, refraction_ratio);
 
         let direction = if cannot_refract || will_reflect {
-            Util::reflect(&unit_direction,&rec.normal)
+            Util::reflect(&unit_direction, &rec.normal)
         } else {
-            Util::refract(&unit_direction,&rec.normal, refraction_ratio)
+            Util::refract(&unit_direction, &rec.normal, refraction_ratio)
         };
 
         let scattered = Ray::new(rec.p, direction);

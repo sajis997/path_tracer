@@ -17,12 +17,14 @@ pub enum Axis {
 
 impl Display for Axis {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f,
-                "{}",
-                 match *self {
-                     Axis::X => "x",
-                     Axis::Y => "y",
-                     Axis::Z => "z"
-                 })
+        write!(
+            f,
+            "{}",
+            match *self {
+                Axis::X => "x",
+                Axis::Y => "y",
+                Axis::Z => "z",
+            }
+        )
     }
 }

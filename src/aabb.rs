@@ -1,5 +1,5 @@
-use std::fmt;
 use glam::Vec3;
+use std::fmt;
 
 use crate::axis::Axis;
 use crate::util::Point3;
@@ -29,7 +29,7 @@ pub trait Bounded {
     This is a great way to remove redundancy in code by reducing the need
     to repeat the code for different types with similar functionality
 
-    we can call the method aabb defined by the Bounded trait on any type 
+    we can call the method aabb defined by the Bounded trait on any type
 */
 impl<T: Bounded> Bounded for &T {
     fn aabb(&self) -> Aabb {
@@ -68,7 +68,7 @@ impl Aabb {
     }
 
     pub fn contains(&self, p: &Point3) -> bool {
-            p.x >= self.min.x
+        p.x >= self.min.x
             && p.x <= self.max.x
             && p.y >= self.min.y
             && p.y <= self.max.y
@@ -77,7 +77,7 @@ impl Aabb {
     }
 
     pub fn approx_contains_eps(&self, p: &Point3, epsilon: f32) -> bool {
-        p.x - self.min.x > - epsilon
+        p.x - self.min.x > -epsilon
             && p.x - self.max.x < epsilon
             && p.y - self.min.y > epsilon
             && p.y - self.max.y < epsilon
@@ -86,16 +86,17 @@ impl Aabb {
     }
 
     pub fn approx_contains_aabb_eps(&self, other: &Aabb, epsilon: f32) -> bool {
-        self.approx_contains_eps(&other.min,epsilon) && self.approx_contains_eps(&other.max,epsilon)
+        self.approx_contains_eps(&other.min, epsilon)
+            && self.approx_contains_eps(&other.max, epsilon)
     }
 
-    pub fn relative_eq(&self,other: &Aabb, epsilon: f32) -> bool {
-        f32::abs(self.min.x - other.min.x) < epsilon &&
-            f32::abs(self.min.y - other.min.y) < epsilon &&
-            f32::abs(self.min.z - other.min.z) < epsilon &&
-            f32::abs(self.max.x - other.max.x) < epsilon &&
-            f32::abs(self.max.y - other.max.y) < epsilon &&
-            f32::abs(self.max.z - other.max.z) < epsilon
+    pub fn relative_eq(&self, other: &Aabb, epsilon: f32) -> bool {
+        f32::abs(self.min.x - other.min.x) < epsilon
+            && f32::abs(self.min.y - other.min.y) < epsilon
+            && f32::abs(self.min.z - other.min.z) < epsilon
+            && f32::abs(self.max.x - other.max.x) < epsilon
+            && f32::abs(self.max.y - other.max.y) < epsilon
+            && f32::abs(self.max.z - other.max.z) < epsilon
     }
 
     pub fn include(&self, other: &Aabb) -> Aabb {
@@ -399,7 +400,7 @@ mod tests {
 
         let aabb = Aabb::new(min, max);
         let axis = aabb.largest_axis();
-        
+
         //assert!(axis == Axis::X);
     }
 }

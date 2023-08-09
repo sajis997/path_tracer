@@ -3,6 +3,7 @@
 // declare the following modules. The compiler will look for the module's code
 // in the following places:
 // 1. src/*
+
 mod aabb;
 mod axis;
 mod camera;
@@ -12,24 +13,22 @@ mod ray;
 mod sphere;
 mod util;
 
-
 // the following use keywords will bring the paths into the scope
-use crate::camera::Camera;
-use crate::hit::{Hit, World};
-use crate::material::{Dielectric, Lambertian, Metal};
-use crate::ray::Ray;
-use crate::sphere::Sphere;
+use camera::Camera;
+use hit::{Hit, World};
+use material::{Dielectric, Lambertian, Metal};
+use ray::Ray;
+use sphere::Sphere;
 
-
-use image::Rgb;
 use glam::Vec3;
+use image::Rgb;
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle};
 use rand::prelude::*;
 use rayon::prelude::*;
-use util::{Color, Point3, Util};
 use std::fs;
 use std::path::Path;
 use std::sync::Arc;
+use util::{Color, Point3, Util};
 
 fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
     if depth == 0 {
@@ -51,7 +50,7 @@ fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
 
 fn random_scene() -> World {
     let mut rng = rand::thread_rng();
-    let mut world = World::new();
+    let mut world = World::with_capacity(550);
 
     let ground_mat = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
     let ground_sphere = Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_mat);
@@ -107,20 +106,20 @@ fn random_scene() -> World {
     world
 }
 
-    //image setup
-    const ASPECT_RATIO: f32 = 3.0 / 2.0;
-    const IMAGE_WIDTH: u32 = 800;
-    const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
-    const SAMPLES_PER_PIXEL: u32 = 500;
-    const MAX_DEPTH: u32 = 50;
-    const CHANNELS: u32 = 3;
-    const IMAGE_OUT_DIR: &str = "output";
-    const IMAGE_FILE_NAME: &str = "parallel-rendering-bigger-4.png";
+//image setup
+const ASPECT_RATIO: f32 = 3.0 / 2.0;
+const IMAGE_WIDTH: u32 = 800;
+const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
+const SAMPLES_PER_PIXEL: u32 = 500;
+const MAX_DEPTH: u32 = 50;
+const CHANNELS: u32 = 3;
+const IMAGE_OUT_DIR: &str = "output";
+const IMAGE_FILE_NAME: &str = "parallel-rendering-bigger-4.png";
 
 fn main() {
     let folder_creation = fs::create_dir_all(IMAGE_OUT_DIR);
 
-    if !folder_creation.is_ok() {
+    if folder_creation.is_err() {
         panic!("Error creating the output folder");
     }
 
@@ -167,7 +166,7 @@ fn main() {
         1. converts the collection into parallel iterator - each band within the bands is assigned to the iterator that executes in parallel
         2. for each band we loop though the pixels and accumulate pixel color with multi-sampling
     */
-    bands       
+    bands
         .into_par_iter()
         .progress_with(bar.with_finish(ProgressFinish::WithMessage("-- Done!".into())))
         .for_each(|(i, band)| {
@@ -189,7 +188,7 @@ fn main() {
                 }
 
                 // conduct gamma correction over the pixel
-                let pixel = Rgb(Util::gamma_correction(&pixel_color,SAMPLES_PER_PIXEL));
+                let pixel = Rgb(Util::gamma_correction(&pixel_color, SAMPLES_PER_PIXEL));
 
                 band[(x * CHANNELS) as usize] = pixel[0];
                 band[(x * CHANNELS + 1) as usize] = pixel[1];
@@ -205,7 +204,7 @@ fn main() {
         IMAGE_HEIGHT,
         image::ColorType::Rgb8,
     ) {
-        Err(e) => panic!("Error writing file {}", e),
-        Ok(()) => println!("Saving of Rendered Image is Done"),
+        Err(e) => panic!("Error writing file: {} and the error is: {}",IMAGE_FILE_NAME, e),
+        Ok(()) => println!("Saving of Rendered Image is Done at: {}",IMAGE_FILE_NAME),
     };
 }

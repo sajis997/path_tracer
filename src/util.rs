@@ -1,7 +1,6 @@
+use glam::Vec3;
 use rand::prelude::*;
 use std::ops::Range;
-use glam::Vec3;
-
 
 #[derive(Clone, Copy)]
 pub struct Util;
@@ -10,8 +9,8 @@ pub type Point3 = Vec3; // give a new name to the existing type
 pub type Color = Vec3; // give a new name to the existing type
 
 impl Util {
-
-    pub fn to_rgb(vec : &Vec3) -> [u8; 3] {
+    /// Convert the Vec3 to Color Array
+    pub fn to_rgb(vec: &Vec3) -> [u8; 3] {
         fn f(num: f32) -> u8 {
             if num < 0.0 {
                 0
@@ -24,7 +23,8 @@ impl Util {
         [f(vec.x), f(vec.y), f(vec.z)]
     }
 
-    pub fn gamma_correction(vec : &Vec3, samples_per_pixel: u32) -> [u8; 3] {
+    /// Return the Gamma Corrected Image as Color Array
+    pub fn gamma_correction(vec: &Vec3, samples_per_pixel: u32) -> [u8; 3] {
         [
             (256.0
                 * (vec.x / (samples_per_pixel as f32/* explicit conversion */))
@@ -41,12 +41,15 @@ impl Util {
         ]
     }
 
+    /// Generate Vec3 by generating random number
     pub fn random(r: Range<f32>) -> Vec3 {
         let mut rng = rand::thread_rng();
 
-        Vec3::new(rng.gen_range(r.clone()),
-                  rng.gen_range(r.clone()),
-                  rng.gen_range(r.clone()))
+        Vec3::new(
+            rng.gen_range(r.clone()),
+            rng.gen_range(r.clone()),
+            rng.gen_range(r.clone()),
+        )
     }
 
     pub fn random_in_unit_sphere() -> Vec3 {
@@ -78,7 +81,7 @@ impl Util {
         }
     }
 
-    pub fn near_zero(vec : & Vec3) -> bool {
+    pub fn near_zero(vec: &Vec3) -> bool {
         const EPS: f32 = 1.0e-8;
         vec.x.abs() < EPS && vec.y.abs() < EPS && vec.z.abs() < EPS
     }
@@ -92,11 +95,11 @@ impl Util {
         )
     }
 
-    pub fn reflect(incoming_vec : &Vec3, n: &Vec3) -> Vec3 {
+    pub fn reflect(incoming_vec: &Vec3, n: &Vec3) -> Vec3 {
         *incoming_vec - 2.0 * incoming_vec.dot(*n) * *n
     }
 
-    pub fn refract(incoming_vec : &Vec3, n: &Vec3, etai_over_etat: f32) -> Vec3 {
+    pub fn refract(incoming_vec: &Vec3, n: &Vec3, etai_over_etat: f32) -> Vec3 {
         let cos_theta = ((-1.0) * *incoming_vec).dot(*n).min(1.0);
         let r_out_perp = etai_over_etat * (*incoming_vec + cos_theta * *n);
         let r_out_parallel = -(1.0 - r_out_perp.length().powi(2)).abs().sqrt() * *n;
@@ -104,8 +107,6 @@ impl Util {
         r_out_perp + r_out_parallel
     }
 }
-
-
 
 /*
     the convention is to create a module name tests in each file to contain

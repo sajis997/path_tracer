@@ -25,6 +25,11 @@ impl HitRecord {
     }
 }
 
+/*
+    the following vector is of type World - is a triat object
+    it is a stand-in for any type inside a Box that implements
+    the Hit trait.
+ */
 pub type World = Vec<Box<dyn Hit>>;
 
 impl Hit for World {
