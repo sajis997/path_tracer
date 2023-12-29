@@ -20,8 +20,9 @@ use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
 use sphere::Sphere;
 
+
+use image::{Rgb, RgbImage};
 use glam::Vec3;
-use image::Rgb;
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle};
 use rand::prelude::*;
 use rayon::prelude::*;
@@ -112,9 +113,8 @@ const IMAGE_WIDTH: u32 = 800;
 const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 500;
 const MAX_DEPTH: u32 = 50;
-const CHANNELS: u32 = 3;
 const IMAGE_OUT_DIR: &str = "output";
-const IMAGE_FILE_NAME: &str = "parallel-rendering-bigger-4.png";
+const IMAGE_FILE_NAME: &str = "parallel-pixel-rendering.png";
 
 fn main() {
     let folder_creation = fs::create_dir_all(IMAGE_OUT_DIR);
@@ -149,62 +149,48 @@ fn main() {
     println!("Rendering Scene ...");
 
     //image plane
-    let mut buffer = vec![0u8; (IMAGE_WIDTH * IMAGE_HEIGHT * CHANNELS) as usize];
-
-    let bands: Vec<(usize, &mut [u8])> = buffer
-        .chunks_mut((IMAGE_WIDTH * CHANNELS) as usize)
-        .enumerate()
-        .collect();
+    let mut img = RgbImage::new(IMAGE_WIDTH,IMAGE_HEIGHT);
 
     let style = ProgressStyle::default_bar().template(
         "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
     );
-    let bar = ProgressBar::new(IMAGE_HEIGHT as u64);
+    let bar = ProgressBar::new((IMAGE_HEIGHT * IMAGE_WIDTH) as u64);
     bar.set_style(style.unwrap().progress_chars("#>-"));
 
     /*
         1. converts the collection into parallel iterator - each band within the bands is assigned to the iterator that executes in parallel
         2. for each band we loop though the pixels and accumulate pixel color with multi-sampling
     */
-    bands
-        .into_par_iter()
-        .progress_with(bar.with_finish(ProgressFinish::WithMessage("-- Done!".into())))
-        .for_each(|(i, band)| {
-            // get the image band - in other words the scanline
-            // go through all the pixels within the scanline
-            for x in 0..IMAGE_WIDTH {
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-                for _ in 0..SAMPLES_PER_PIXEL {
-                    let mut rng = rand::thread_rng();
-                    let random_u: f32 = rng.gen();
-                    let random_v: f32 = rng.gen();
+    img
+        .enumerate_pixels_mut()
+        .par_bridge()
+        .progress_with(bar.with_finish(ProgressFinish::WithMessage("\nScene Rendering Completed.".into())))
+        .for_each(|(x,y,pixel)| {
 
-                    let u = ((x as f32) + random_u) / ((IMAGE_WIDTH - 1) as f32);
-                    let v = 1.0 - (((i as f32) + random_v) / ((IMAGE_HEIGHT - 1) as f32));
-                    let ray = cam.get_ray(u, v);
+            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-                    pixel_color += ray_color(&ray, &world, MAX_DEPTH);
-                }
+            for _ in 0..SAMPLES_PER_PIXEL {
+                let mut rng = rand::thread_rng();
 
-                // conduct gamma correction over the pixel
-                let pixel = Rgb(Util::gamma_correction(&pixel_color, SAMPLES_PER_PIXEL));
+                let random_u: f32 = rng.gen();
+                let random_v: f32 = rng.gen();
 
-                band[(x * CHANNELS) as usize] = pixel[0];
-                band[(x * CHANNELS + 1) as usize] = pixel[1];
-                band[(x * CHANNELS + 2) as usize] = pixel[2];
+                let u = ((x as f32) + random_u) / ((IMAGE_WIDTH - 1) as f32);
+                let v = 1.0 - (((y as f32) + random_v) / ((IMAGE_HEIGHT - 1) as f32));
+                let ray = cam.get_ray(u, v); 
+
+                pixel_color += ray_color(&ray, &world, MAX_DEPTH);               
+
             }
+
+            // conduct gamma correction over the pixel
+            *pixel = Rgb(Util::gamma_correction(&pixel_color, SAMPLES_PER_PIXEL));
         });
 
-    //save the raw data
-    match image::save_buffer(
-        dirs,
-        &buffer,
-        IMAGE_WIDTH,
-        IMAGE_HEIGHT,
-        image::ColorType::Rgb8,
-    ) {
-        Err(e) => panic!("Error writing file: {} and the error is: {}",IMAGE_FILE_NAME, e),
-        Ok(()) => println!("Saving of Rendered Image is Done at: {}",IMAGE_FILE_NAME),
+    match img.save(dirs) {
+        Ok(_) => println!("Image saved successfully"),
+        Err(err) => eprintln!("Error saving image: {err}",)
     };
+
 }
