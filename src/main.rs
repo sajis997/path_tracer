@@ -12,6 +12,7 @@ mod material;
 mod ray;
 mod sphere;
 mod util;
+mod tracer;
 
 // the following use keywords will bring the paths into the scope
 use camera::Camera;
@@ -20,34 +21,19 @@ use material::{Dielectric, Lambertian, Metal};
 use ray::Ray;
 use sphere::Sphere;
 
+use eframe::egui;
+use eframe::NativeOptions;
 
 use image::{Rgb, RgbImage};
 use glam::Vec3;
-use indicatif::{ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle};
+use indicatif::{ProgressBar, ProgressFinish, ProgressStyle};
 use rand::prelude::*;
-use rayon::prelude::*;
-use std::fs;
-use std::path::Path;
+use util::Color;
+use util::Point3;
+use util::Util;
 use std::sync::Arc;
-use util::{Color, Point3, Util};
 
-fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
-    if depth == 0 {
-        return Color::new(0.0, 0.0, 0.0);
-    }
-
-    if let Some(rec) = world.hit(r, 0.001, f32::INFINITY) {
-        if let Some((attenuation, scattered)) = rec.mat.scatter(r, &rec) {
-            attenuation * ray_color(&scattered, world, depth - 1)
-        } else {
-            Color::new(0.0, 0.0, 0.0)
-        }
-    } else {
-        let unit_direction = r.direction().normalize();
-        let t = 0.5 * (unit_direction.y + 1.0);
-        (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
-    }
-}
+use tracer::Tracer;
 
 fn random_scene() -> World {
     let mut rng = rand::thread_rng();
@@ -109,23 +95,14 @@ fn random_scene() -> World {
 
 //image setup
 const ASPECT_RATIO: f32 = 3.0 / 2.0;
-const IMAGE_WIDTH: u32 = 800;
+const IMAGE_WIDTH: u32 = 100;
 const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 500;
-const MAX_DEPTH: u32 = 50;
+const MAX_DEPTH: u32 = 100;
 const IMAGE_OUT_DIR: &str = "output";
 const IMAGE_FILE_NAME: &str = "parallel-pixel-rendering.png";
 
 fn main() {
-    let folder_creation = fs::create_dir_all(IMAGE_OUT_DIR);
-
-    if folder_creation.is_err() {
-        panic!("Error creating the output folder");
-    }
-
-    let path = Path::new(".");
-    let dirs = path.join(IMAGE_OUT_DIR).join(IMAGE_FILE_NAME);
-
     //world
     let world = random_scene(); // crate an empty world
 
@@ -146,51 +123,19 @@ fn main() {
         dist_to_focus,
     );
 
-    println!("Rendering Scene ...");
-
-    //image plane
-    let mut img = RgbImage::new(IMAGE_WIDTH,IMAGE_HEIGHT);
+    let tracer = Tracer::new(IMAGE_WIDTH,IMAGE_HEIGHT,SAMPLES_PER_PIXEL);
 
     let style = ProgressStyle::default_bar().template(
         "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
-    );
-    let bar = ProgressBar::new((IMAGE_HEIGHT * IMAGE_WIDTH) as u64);
-    bar.set_style(style.unwrap().progress_chars("#>-"));
+    );  
+    let progress_bar = ProgressBar::new((IMAGE_WIDTH * IMAGE_HEIGHT) as u64);
+    progress_bar.set_style(style.unwrap().progress_chars("#>-"));
+    
 
-    /*
-        1. converts the collection into parallel iterator - each band within the bands is assigned to the iterator that executes in parallel
-        2. for each band we loop though the pixels and accumulate pixel color with multi-sampling
-    */
+    println!("Rendering Scene ...");
+    tracer.trace(&cam, &world, &progress_bar ,MAX_DEPTH);
 
-    img
-        .enumerate_pixels_mut()
-        .par_bridge()
-        .progress_with(bar.with_finish(ProgressFinish::WithMessage("\nScene Rendering Completed.".into())))
-        .for_each(|(x,y,pixel)| {
+    progress_bar.with_finish(ProgressFinish::WithMessage("\nScene Rendering Completed.".into()));       
 
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-
-            for _ in 0..SAMPLES_PER_PIXEL {
-                let mut rng = rand::thread_rng();
-
-                let random_u: f32 = rng.gen();
-                let random_v: f32 = rng.gen();
-
-                let u = ((x as f32) + random_u) / ((IMAGE_WIDTH - 1) as f32);
-                let v = 1.0 - (((y as f32) + random_v) / ((IMAGE_HEIGHT - 1) as f32));
-                let ray = cam.get_ray(u, v); 
-
-                pixel_color += ray_color(&ray, &world, MAX_DEPTH);               
-
-            }
-
-            // conduct gamma correction over the pixel
-            *pixel = Rgb(Util::gamma_correction(&pixel_color, SAMPLES_PER_PIXEL));
-        });
-
-    match img.save(dirs) {
-        Ok(_) => println!("Image saved successfully"),
-        Err(err) => eprintln!("Error saving image: {err}",)
-    };
-
+    tracer.save(IMAGE_OUT_DIR, IMAGE_FILE_NAME);
 }
