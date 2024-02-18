@@ -16,15 +16,11 @@ mod tracer;
 
 // the following use keywords will bring the paths into the scope
 use camera::Camera;
-use hit::{Hit, World};
+use hit::World;
 use material::{Dielectric, Lambertian, Metal};
-use ray::Ray;
 use sphere::Sphere;
 
-use eframe::egui;
-use eframe::NativeOptions;
 
-use image::{Rgb, RgbImage};
 use glam::Vec3;
 use indicatif::{ProgressBar, ProgressFinish, ProgressStyle};
 use rand::prelude::*;
@@ -95,7 +91,7 @@ fn random_scene() -> World {
 
 //image setup
 const ASPECT_RATIO: f32 = 3.0 / 2.0;
-const IMAGE_WIDTH: u32 = 100;
+const IMAGE_WIDTH: u32 = 400;
 const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 500;
 const MAX_DEPTH: u32 = 100;
