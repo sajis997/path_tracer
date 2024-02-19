@@ -8,7 +8,7 @@ use camera::Camera;
 use hit::{Hit, World};
 use ray::Ray;
 use std::{fs, path::Path};
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 
 use crate::{util, camera, hit,ray};
@@ -53,46 +53,34 @@ impl Tracer {
     }
 
     pub fn trace(&self, cam: &Camera, world: &World, bar: &ProgressBar ,max_depth: u32) {
-    
-        // generate pixel coordinates from the image buffer
-        let pixels = (0..self.image_width)
-            .flat_map(|x| (0..self.image_height).map(move |y| (x, y)))
-            .collect::<Vec<(u32, u32)>>();
+        
+        match self.image_buffer.write() {
+            Ok(mut locked_buffer) => {
+                locked_buffer
+                    .par_enumerate_pixels_mut()
+                    .progress_with(bar.clone())
+                    .for_each(|(x,y,px_out)| {
 
+                        let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-        /////////////////////////////////////////////
-        //Perform multi-sampling with parallelism
-        pixels
-            .par_iter()
-            .progress_with(bar.clone())
-            .for_each(|(x, y)| {
+                        for _ in 0..self.samples_per_pixel {
+                            let mut rng = rand::thread_rng();
             
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
-
-            for _ in 0..self.samples_per_pixel {
-                let mut rng = rand::thread_rng();
-
-                let random_u: f32 = rng.gen();
-                let random_v: f32 = rng.gen();
-
-                let u = ((*x as f32) + random_u) / ((self.image_width - 1) as f32);
-                let v = 1.0 - (((*y as f32) + random_v) / ((self.image_height - 1) as f32));
-                let ray = cam.get_ray(u, v); 
-
-                pixel_color += self.ray_color(&ray, &world, max_depth);               
-
-            }
-
+                            let random_u: f32 = rng.gen();
+                            let random_v: f32 = rng.gen();
             
-            let image_buffer_lock_result = self.image_buffer.try_write();
+                            let u = ((x as f32) + random_u) / ((self.image_width - 1) as f32);
+                            let v = 1.0 - (((y as f32) + random_v) / ((self.image_height - 1) as f32));
+                            let ray = cam.get_ray(u, v); 
+            
+                            pixel_color += self.ray_color(&ray, &world, max_depth);                       
+                        }
 
-            if !image_buffer_lock_result.is_err() {
-                // conduct gamma correction over the pixel
-                let mut buffer = image_buffer_lock_result.unwrap();
-                buffer.put_pixel(*x, *y, Rgb(Util::gamma_correction(&pixel_color, self.samples_per_pixel)));
-            }           
-        });
-
+                        *px_out = Rgb(Util::gamma_correction(&pixel_color, self.samples_per_pixel));
+                    });
+            },
+            Err(_) => panic!("Error locking the image buffer"),
+        }
     }
 
     pub fn save(&self,image_path: &str, file_name: &str){
