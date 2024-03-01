@@ -1,3 +1,9 @@
 {
-    "rust-analyzer.diagnostics.useRustcErrorCode": true
+    "rust-analyzer.diagnostics.useRustcErrorCode": true,
+    "rust-analyzer.linkedProjects": [
+        ".\\Cargo.toml",
+        ".\\Cargo.toml",
+        ".\\Cargo.toml",
+        ".\\Cargo.toml"
+    ]
 }
