@@ -1,4 +1,4 @@
-//main.rs - is the crate root file
+//main.rs - is the crate root file of a binary crate with the same name as the package.
 
 // declare the following modules. The compiler will look for the module's code
 // in the following places:

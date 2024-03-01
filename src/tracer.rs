@@ -34,7 +34,7 @@ impl Tracer {
         }
     }
 
-    pub fn ray_color(&self, r: &Ray, world: &World, depth: u32) -> Color {
+    fn ray_color(&self, r: &Ray, world: &World, depth: u32) -> Color {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
@@ -93,9 +93,13 @@ impl Tracer {
         let path = Path::new(".");
         let dirs = path.join(image_path).join(file_name);
 
-        match self.image_buffer.try_read().unwrap().save(dirs) {
-            Ok(_) => println!("Image saved successfully"),
-            Err(err) => eprintln!("Error saving image: {err}",)
+        match self.image_buffer.read()
+        {
+            Ok(locked_buffer) => match locked_buffer.save(dirs) {
+                Ok(_) => println!("Image saved successfully"),
+                Err(err) => eprintln!("Error saving image: {err}",)
+            },
+            Err(_) => panic!("Error locking the image buffer"),
         };
     }
 }
