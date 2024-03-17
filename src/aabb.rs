@@ -4,6 +4,7 @@ use std::fmt;
 use crate::axis::Axis;
 use crate::util::Point3;
 
+// three dimensional axis aligned bounding box
 pub struct Aabb {
     min: Point3, // minimum coordinate
     max: Point3, // maximum coordinate
@@ -12,40 +13,6 @@ pub struct Aabb {
 impl fmt::Display for Aabb {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Min bound: {}; Max bound: {}", self.min, self.max)
-    }
-}
-
-// a trait implemented by things which can be bounded by an AABB
-pub trait Bounded {
-    fn aabb(&self) -> Aabb;
-}
-
-/*
-    in the following snippet we are making a blanket implementation on
-    a generic type T , that implements Bounded. Therefore, we use behavior
-    guaranteed by the Bounded type, to produce a Aabb representation, to our
-    advantage.
-
-    This is a great way to remove redundancy in code by reducing the need
-    to repeat the code for different types with similar functionality
-
-    we can call the method aabb defined by the Bounded trait on any type
-*/
-impl<T: Bounded> Bounded for &T {
-    fn aabb(&self) -> Aabb {
-        T::aabb(self)
-    }
-}
-
-impl<T: Bounded> Bounded for &mut T {
-    fn aabb(&self) -> Aabb {
-        T::aabb(self)
-    }
-}
-
-impl<T: Bounded> Bounded for Box<T> {
-    fn aabb(&self) -> Aabb {
-        T::aabb(self)
     }
 }
 

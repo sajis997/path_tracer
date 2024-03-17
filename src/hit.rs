@@ -29,6 +29,8 @@ impl HitRecord {
     the following vector is of type World - is a triat object
     it is a stand-in for any type inside a Box that implements
     the Hit trait.
+
+    A vector of Box<dyn Hit> is a vector of any type that implements the Hit trait.
  */
 pub type World = Vec<Box<dyn Hit>>;
 
@@ -48,6 +50,10 @@ impl Hit for World {
     }
 }
 
-pub trait Hit: Send + Sync {
+
+/*
+    Sync marker triats are used to mark types that are safe to share between threads.
+*/
+pub trait Hit : Sync {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
 }

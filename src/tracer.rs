@@ -15,6 +15,8 @@ use crate::{util, camera, hit,ray};
 
 
 pub struct Tracer {
+
+    // the fields within the struct are private
     image_buffer: RwLock<RgbImage>,
     image_width: u32,
     image_height: u32,
@@ -58,8 +60,8 @@ impl Tracer {
             Ok(mut locked_buffer) => {
                 locked_buffer
                     .par_enumerate_pixels_mut()
-                    .progress_with(bar.clone())
-                    .for_each(|(x,y,px_out)| {
+                    .progress_with(bar.clone())                    
+                    .for_each(|( x, y,px_out)| {
 
                         let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
