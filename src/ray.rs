@@ -1,4 +1,6 @@
-use crate::vec::{Point3, Vec3};
+use glam::Vec3;
+
+use crate::util::Point3;
 
 pub struct Ray {
     origo: Point3,
@@ -6,7 +8,7 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn new(origin: Point3, direction: Vec3) -> Ray {
+    pub fn new(origin: Point3, direction: Vec3) -> Self {
         Ray {
             origo: origin,
             dir: direction,
@@ -21,7 +23,7 @@ impl Ray {
         self.dir
     }
 
-    pub fn at(&self, t: f64) -> Point3 {
+    pub fn at(&self, t: f32) -> Point3 {
         self.origo + t * self.dir
     }
 }
@@ -34,9 +36,9 @@ mod tests {
     macro_rules! assert_vec3_equal {
         ($expected:expr, $actual:expr) => {
             let tolerance = 0.0001;
-            assert_approx_eq!($expected.x(), $actual.x(), tolerance);
-            assert_approx_eq!($expected.y(), $actual.y(), tolerance);
-            assert_approx_eq!($expected.z(), $actual.z(), tolerance);
+            assert_approx_eq!($expected.x, $actual.x, tolerance);
+            assert_approx_eq!($expected.y, $actual.y, tolerance);
+            assert_approx_eq!($expected.z, $actual.z, tolerance);
         };
     }
 

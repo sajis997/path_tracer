@@ -1,50 +1,39 @@
-//main.rs - is the crate root file
+//main.rs - is the crate root file of a binary crate with the same name as the package.
 
+// declare the following modules. The compiler will look for the module's code
+// in the following places:
+// 1. src/*
+
+mod aabb;
+mod axis;
 mod camera;
 mod hit;
 mod material;
 mod ray;
 mod sphere;
-mod vec; // to use Vec3 in the program, add a reference with mod keyword
+mod util;
+mod tracer;
 
-use crate::camera::Camera;
-use crate::hit::{Hit, World};
-use crate::material::{Dielectric, Lambertian, Metal};
-use crate::ray::Ray;
-use crate::sphere::Sphere;
-use crate::vec::{Color, Point3, Vec3};
+// the following use keywords will bring the paths into the scope
+use camera::Camera;
+use hit::World;
+use material::{Dielectric, Lambertian, Metal};
+use sphere::Sphere;
 
-use image::Rgb;
-use indicatif::{
-    ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle,
-};
+
+use glam::Vec3;
+use indicatif::{ProgressBar, ProgressFinish, ProgressStyle};
 use rand::prelude::*;
-use rayon::prelude::*;
-use std::path::Path;
+use util::Color;
+use util::Point3;
+use util::Util;
 use std::sync::Arc;
-use std::fs;
 
-fn ray_color(r: &Ray, world: &World, depth: u32) -> Color {
-    if depth <= 0 {
-        return Color::new(0.0, 0.0, 0.0);
-    }
-
-    if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
-        if let Some((attenuation, scattered)) = rec.mat.scatter(r, &rec) {
-            attenuation * ray_color(&scattered, world, depth - 1)
-        } else {
-            Color::new(0.0, 0.0, 0.0)
-        }
-    } else {
-        let unit_direction = r.direction().normalized();
-        let t = 0.5 * (unit_direction.y() + 1.0);
-        (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
-    }
-}
+use tracer::Tracer;
 
 fn random_scene() -> World {
     let mut rng = rand::thread_rng();
-    let mut world = World::new();
+    let mut world = World::with_capacity(550);
 
     let ground_mat = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
     let ground_sphere = Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_mat);
@@ -55,21 +44,21 @@ fn random_scene() -> World {
         for b in -11..=11 {
             let choose_mat: f64 = rng.gen();
             let center = Point3::new(
-                (a as f64) + rng.gen_range(0.0..0.9),
+                (a as f32) + rng.gen_range(0.0..0.9),
                 0.2,
-                (b as f64) + rng.gen_range(0.0..0.9),
+                (b as f32) + rng.gen_range(0.0..0.9),
             );
 
             if choose_mat < 0.8 {
                 // Diffuse
-                let albedo = Color::random(0.0..1.0) * Color::random(0.0..1.0);
+                let albedo = Util::random(0.0..1.0) * Util::random(0.0..1.0);
                 let sphere_mat = Arc::new(Lambertian::new(albedo));
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
 
                 world.push(Box::new(sphere));
             } else if choose_mat < 0.95 {
                 // Metal
-                let albedo = Color::random(0.4..1.0);
+                let albedo = Util::random(0.4..1.0);
                 let fuzz = rng.gen_range(0.0..0.5);
                 let sphere_mat = Arc::new(Metal::new(albedo, fuzz));
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
@@ -100,27 +89,16 @@ fn random_scene() -> World {
     world
 }
 
+//image setup
+const ASPECT_RATIO: f32 = 3.0 / 2.0;
+const IMAGE_WIDTH: u32 = 1024;
+const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
+const SAMPLES_PER_PIXEL: u32 = 500;
+const MAX_DEPTH: u32 = 100;
+const IMAGE_OUT_DIR: &str = "output";
+const IMAGE_FILE_NAME: &str = "parallel-pixel-rendering.png";
+
 fn main() {
-    //image setup
-    const ASPECT_RATIO: f64 = 3.0 / 2.0;
-    const IMAGE_WIDTH: u32 = 800;
-    const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as u32;
-    const SAMPLES_PER_PIXEL: u32 = 500;
-    const MAX_DEPTH: u32 = 50;
-    const CHANNELS: u32 = 3;
-    const IMAGE_OUT_DIR: &str = "output";
-    const IMAGE_FILE_NAME: &str = "parallel-rendering.png";
-
-    //if let Some(p) = file_path.parent() { fs::create_dir_all(p)? }; fs::write(file_path, file_contents)?;    
-    let folder_creation = fs::create_dir_all(IMAGE_OUT_DIR);
-    
-    if !folder_creation.is_ok() {
-        panic!("Error creating the output folder");
-    }
-
-    let path = Path::new(".");
-    let dirs = path.join(IMAGE_OUT_DIR).join(IMAGE_FILE_NAME);    
-
     //world
     let world = random_scene(); // crate an empty world
 
@@ -141,65 +119,19 @@ fn main() {
         dist_to_focus,
     );
 
-    println!("Rendering Scene ...");
-
-    //image plane
-    let mut buffer = vec![0u8; (IMAGE_WIDTH * IMAGE_HEIGHT * CHANNELS) as usize];
-
-    let bands: Vec<(usize, &mut [u8])> = buffer
-        .chunks_mut((IMAGE_WIDTH * CHANNELS) as usize)
-        .enumerate()
-        .collect();
+    let tracer = Tracer::new(IMAGE_WIDTH,IMAGE_HEIGHT,SAMPLES_PER_PIXEL);
 
     let style = ProgressStyle::default_bar().template(
         "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
-    );
-    let bar = ProgressBar::new(IMAGE_HEIGHT as u64);
-    bar.set_style(style.unwrap().progress_chars("#>-"));
+    );  
+    let progress_bar = ProgressBar::new((IMAGE_WIDTH * IMAGE_HEIGHT) as u64);
+    progress_bar.set_style(style.unwrap().progress_chars("#>-"));
+    
 
-    /*
-        1. converts the collection into parallel iterator - each band within the bands is assigned to the iterator that executes in parallel
-        2. for each band we loop though the pixels and accumulate pixel color with multi-sampling
-    */
-    bands
-        .into_par_iter()
-        .progress_with(bar.with_finish(ProgressFinish::WithMessage("-- Done!".into())))
-        .for_each(|(i, band)| {
-            // get the image band - in other words the scanline
-            // go through all the pixels within the scanline
-            for x in 0..IMAGE_WIDTH {
-                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+    println!("Rendering Scene ...");
+    tracer.trace(&cam, &world, &progress_bar ,MAX_DEPTH);
 
-                for _ in 0..SAMPLES_PER_PIXEL {
-                    let mut rng = rand::thread_rng();
-                    let random_u: f64 = rng.gen();
-                    let random_v: f64 = rng.gen();
+    progress_bar.with_finish(ProgressFinish::WithMessage("\nScene Rendering Completed.".into()));       
 
-                    let u = ((x as f64) + random_u) / ((IMAGE_WIDTH - 1) as f64);
-                    let v = 1.0 - (((i as f64) + random_v) / ((IMAGE_HEIGHT - 1) as f64));
-                    let ray = cam.get_ray(u, v);
-
-                    pixel_color += ray_color(&ray, &world, MAX_DEPTH);
-                }
-
-                // conduct gamma correction over the pixel
-                let pixel = Rgb(pixel_color.gamma_correction(SAMPLES_PER_PIXEL));
-
-                band[(x * CHANNELS) as usize] = pixel[0];
-                band[(x * CHANNELS + 1) as usize] = pixel[1];
-                band[(x * CHANNELS + 2) as usize] = pixel[2];
-            }
-        });
-
-    //save the raw data
-    match image::save_buffer(
-        dirs,
-        &buffer,
-        IMAGE_WIDTH,
-        IMAGE_HEIGHT,
-        image::ColorType::Rgb8,
-    ) {
-        Err(e) => panic!("Error writing file {}", e),
-        Ok(()) => println!("Saving of Rendered Image is Done"),
-    };
+    tracer.save(IMAGE_OUT_DIR, IMAGE_FILE_NAME);
 }

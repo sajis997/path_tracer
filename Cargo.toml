@@ -9,6 +9,15 @@ authors = ["Sajjadul Islam <sajjadul.islam.bd@proton.me>"]
 [dependencies]
 assert_approx_eq = "1.1.0"
 rand = "0.8.5"
-image = "0.24.4"
-rayon = "1.5.3"
-indicatif = { version = "0.17.2", features = ["rayon"] }
+image = {version = "0.25.0", features = ["rayon"] }
+rayon = "1.9.0"
+indicatif = { version = "0.17.8", features = ["rayon"] }
+glam = "0.25.0"
+
+[profile.dev]
+opt-level = 1
+
+
+[profile.release]
+panic = 'abort'
+opt-level = 3

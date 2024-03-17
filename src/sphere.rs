@@ -1,18 +1,20 @@
 use std::sync::Arc;
 
+use glam::Vec3;
+
 use crate::hit::{Hit, HitRecord};
 use crate::material::Scatter;
 use crate::ray::Ray;
-use crate::vec::{Point3, Vec3};
+use crate::util::Point3;
 
 pub struct Sphere {
     center: Point3,
-    radius: f64,
+    radius: f32,
     mat: Arc<dyn Scatter>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64, mat: Arc<dyn Scatter>) -> Self {
+    pub fn new(center: Point3, radius: f32, mat: Arc<dyn Scatter>) -> Self {
         Self {
             center,
             radius,
@@ -22,10 +24,10 @@ impl Sphere {
 }
 
 impl Hit for Sphere {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let oc = r.origin() - self.center;
         let a = r.direction().length().powi(2);
-        let half_b = oc.dot(&r.direction());
+        let half_b = oc.dot(r.direction());
         let c = oc.length().powi(2) - self.radius * self.radius;
         let discriminant = half_b * half_b - a * c;
 

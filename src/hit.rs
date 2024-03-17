@@ -1,20 +1,22 @@
 use std::sync::Arc;
 
+use glam::Vec3;
+
 use crate::material::Scatter;
 use crate::ray::Ray;
-use crate::vec::{Point3, Vec3};
+use crate::util::Point3;
 
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
     pub mat: Arc<dyn Scatter>,
-    pub t: f64,
+    pub t: f32,
     pub front_face: bool,
 }
 
 impl HitRecord {
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {
-        self.front_face = r.direction().dot(&outward_normal) < 0.0;
+        self.front_face = r.direction().dot(outward_normal) < 0.0;
         self.normal = if self.front_face {
             outward_normal
         } else {
@@ -23,10 +25,17 @@ impl HitRecord {
     }
 }
 
+/*
+    the following vector is of type World - is a triat object
+    it is a stand-in for any type inside a Box that implements
+    the Hit trait.
+
+    A vector of Box<dyn Hit> is a vector of any type that implements the Hit trait.
+ */
 pub type World = Vec<Box<dyn Hit>>;
 
 impl Hit for World {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let mut tmp_rec = None;
         let mut closest_so_far = t_max;
 
@@ -41,6 +50,10 @@ impl Hit for World {
     }
 }
 
-pub trait Hit: Send + Sync {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
+
+/*
+    Sync marker triats are used to mark types that are safe to share between threads.
+*/
+pub trait Hit : Sync {
+    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
 }

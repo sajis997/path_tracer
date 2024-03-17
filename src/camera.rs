@@ -1,5 +1,6 @@
+use glam::Vec3;
 use crate::ray::Ray;
-use crate::vec::{Point3, Vec3};
+use crate::util::{Point3, Util};
 
 /*
     Develop the camera incrementaly
@@ -22,7 +23,7 @@ pub struct Camera {
     vertical: Vec3,
     cu: Vec3,
     cv: Vec3,
-    lens_radius: f64,
+    lens_radius: f32,
 }
 
 impl Camera {
@@ -30,19 +31,19 @@ impl Camera {
         lookfrom: Point3,
         lookat: Point3,
         vup: Vec3,
-        vfov: f64,
-        aspect_ratio: f64,
-        aperture: f64,
-        focus_dist: f64,
-    ) -> Camera {
+        vfov: f32,
+        aspect_ratio: f32,
+        aperture: f32,
+        focus_dist: f32,
+    ) -> Self {
         // Vertical field-of-view in degrees
-        let theta = std::f64::consts::PI / 180.0 * vfov;
+        let theta = std::f32::consts::PI / 180.0 * vfov;
         let viewport_height = 2.0 * (theta / 2.0).tan();
         let viewport_width = aspect_ratio * viewport_height;
 
-        let cw = (lookfrom - lookat).normalized();
-        let cu = vup.cross(&cw).normalized();
-        let cv = cw.cross(&cu);
+        let cw = (lookfrom - lookat).normalize();
+        let cu = vup.cross(cw).normalize();
+        let cv = cw.cross(cu);
 
         let h = focus_dist * viewport_width * cu;
         let v = focus_dist * viewport_height * cv;
@@ -54,15 +55,15 @@ impl Camera {
             horizontal: h,
             vertical: v,
             lower_left_corner: llc,
-            cu: cu,
-            cv: cv,
+            cu,
+            cv,
             lens_radius: aperture / 2.0,
         }
     }
 
-    pub fn get_ray(&self, s: f64, t: f64) -> Ray {
-        let rd = self.lens_radius * Vec3::random_in_unit_disk();
-        let offset = self.cu * rd.x() + self.cv * rd.y();
+    pub fn get_ray(&self, s: f32, t: f32) -> Ray {
+        let rd = self.lens_radius * Util::random_in_unit_disk();
+        let offset = self.cu * rd.x + self.cv * rd.y;
         Ray::new(
             self.origin + offset,
             self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
