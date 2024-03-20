@@ -1,20 +1,18 @@
-use std::sync::Arc;
 
 use glam::Vec3;
-
 use crate::hit::{Hit, HitRecord};
 use crate::material::Scatter;
 use crate::ray::Ray;
 use crate::util::Point3;
 
-pub struct Sphere {
+pub struct Sphere<M: Scatter> {
     center: Point3,
     radius: f32,
-    mat: Arc<dyn Scatter>,
+    mat: M,
 }
 
-impl Sphere {
-    pub fn new(center: Point3, radius: f32, mat: Arc<dyn Scatter>) -> Self {
+impl<M: Scatter> Sphere<M> {
+    pub fn new(center: Point3, radius: f32, mat: M) -> Self {
         Self {
             center,
             radius,
@@ -23,7 +21,7 @@ impl Sphere {
     }
 }
 
-impl Hit for Sphere {
+impl<M: Scatter> Hit for Sphere<M> {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let oc = r.origin() - self.center;
         let a = r.direction().length().powi(2);
@@ -48,7 +46,7 @@ impl Hit for Sphere {
         let mut rec = HitRecord {
             t: root,
             p: r.at(root),
-            mat: self.mat.clone(),
+            mat: &self.mat,
             normal: Vec3::new(0.0, 0.0, 0.0),
             front_face: false,
         };

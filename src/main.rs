@@ -27,7 +27,6 @@ use rand::prelude::*;
 use util::Color;
 use util::Point3;
 use util::Util;
-use std::sync::Arc;
 
 use tracer::Tracer;
 
@@ -35,7 +34,7 @@ fn random_scene() -> World {
     let mut rng = rand::thread_rng();
     let mut world = World::with_capacity(550);
 
-    let ground_mat = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    let ground_mat = Lambertian::new(Color::new(0.5, 0.5, 0.5));
     let ground_sphere = Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_mat);
 
     world.push(Box::new(ground_sphere));
@@ -52,7 +51,7 @@ fn random_scene() -> World {
             if choose_mat < 0.8 {
                 // Diffuse
                 let albedo = Util::random(0.0..1.0) * Util::random(0.0..1.0);
-                let sphere_mat = Arc::new(Lambertian::new(albedo));
+                let sphere_mat = Lambertian::new(albedo);
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
 
                 world.push(Box::new(sphere));
@@ -60,13 +59,13 @@ fn random_scene() -> World {
                 // Metal
                 let albedo = Util::random(0.4..1.0);
                 let fuzz = rng.gen_range(0.0..0.5);
-                let sphere_mat = Arc::new(Metal::new(albedo, fuzz));
+                let sphere_mat = Metal::new(albedo, fuzz);
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
 
                 world.push(Box::new(sphere));
             } else {
                 // Glass
-                let sphere_mat = Arc::new(Dielectric::new(1.5));
+                let sphere_mat = Dielectric::new(1.5);
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
 
                 world.push(Box::new(sphere));
@@ -74,9 +73,9 @@ fn random_scene() -> World {
         }
     }
 
-    let mat1 = Arc::new(Dielectric::new(1.5));
-    let mat2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
-    let mat3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    let mat1 = Dielectric::new(1.5);
+    let mat2 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
+    let mat3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
 
     let sphere1 = Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, mat1);
     let sphere2 = Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, mat2);
@@ -91,7 +90,7 @@ fn random_scene() -> World {
 
 //image setup
 const ASPECT_RATIO: f32 = 3.0 / 2.0;
-const IMAGE_WIDTH: u32 = 1024;
+const IMAGE_WIDTH: u32 = 800;
 const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 1000;
 const MAX_DEPTH: u32 = 100;

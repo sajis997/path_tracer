@@ -1,20 +1,19 @@
-use std::sync::Arc;
-
 use glam::Vec3;
 
 use crate::material::Scatter;
 use crate::ray::Ray;
 use crate::util::Point3;
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub p: Point3,
     pub normal: Vec3,
-    pub mat: Arc<dyn Scatter>,
+    pub mat: &'a dyn Scatter,
     pub t: f32,
     pub front_face: bool,
 }
 
-impl HitRecord {
+
+impl<'a> HitRecord<'a> {
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {
         self.front_face = r.direction().dot(outward_normal) < 0.0;
         self.normal = if self.front_face {
@@ -23,7 +22,7 @@ impl HitRecord {
             (-1.0) * outward_normal
         };
     }
-}
+} 
 
 /*
     the following vector is of type World - is a triat object
