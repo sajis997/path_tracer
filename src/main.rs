@@ -10,15 +10,15 @@ mod camera;
 mod hit;
 mod material;
 mod ray;
-mod sphere;
 mod util;
 mod tracer;
+mod primitives;
 
 // the following use keywords will bring the paths into the scope
 use camera::Camera;
 use hit::World;
 use material::{Dielectric, Lambertian, Metal};
-use sphere::Sphere;
+use primitives::sphere::Sphere;
 
 
 use glam::Vec3;
@@ -90,7 +90,7 @@ fn random_scene() -> World {
 
 //image setup
 const ASPECT_RATIO: f32 = 3.0 / 2.0;
-const IMAGE_WIDTH: u32 = 800;
+const IMAGE_WIDTH: u32 = 1024;
 const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 1000;
 const MAX_DEPTH: u32 = 100;

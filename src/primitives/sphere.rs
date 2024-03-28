@@ -4,6 +4,7 @@ use crate::hit::{Hit, HitRecord};
 use crate::material::Scatter;
 use crate::ray::Ray;
 use crate::util::Point3;
+use crate::aabb::Aabb;
 
 pub struct Sphere<M: Scatter> {
     center: Point3,
@@ -55,5 +56,13 @@ impl<M: Scatter> Hit for Sphere<M> {
         rec.set_face_normal(r, outward_normal);
 
         Some(rec)
+    }
+    
+    fn bounding_box(&self, time0: f32, time1: f32) -> Option<Aabb> {
+        //return the bounding box of the sphere 
+        // that is already calculated in the constructor
+        let r = Vec3::new(self.radius, self.radius, self.radius);
+        let box_sphere = Aabb::new(self.center - r, self.center + r);        
+        Some(box_sphere)
     }
 }
