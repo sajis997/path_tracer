@@ -1,20 +1,20 @@
-use std::sync::Arc;
-
 use glam::Vec3;
 
 use crate::material::Scatter;
 use crate::ray::Ray;
 use crate::util::Point3;
+use crate::aabb::Aabb;
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub p: Point3,
     pub normal: Vec3,
-    pub mat: Arc<dyn Scatter>,
+    pub mat: &'a dyn Scatter,
     pub t: f32,
     pub front_face: bool,
 }
 
-impl HitRecord {
+
+impl<'a> HitRecord<'a> {
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {
         self.front_face = r.direction().dot(outward_normal) < 0.0;
         self.normal = if self.front_face {
@@ -23,7 +23,7 @@ impl HitRecord {
             (-1.0) * outward_normal
         };
     }
-}
+} 
 
 /*
     the following vector is of type World - is a triat object
@@ -48,6 +48,26 @@ impl Hit for World {
 
         tmp_rec
     }
+    
+    fn bounding_box(&self, time0: f32, time1: f32) -> Option<Aabb> {
+        if self.is_empty() {
+            return None;
+        }
+
+        let mut output_box : Option<Aabb> = None;
+        for object in self {
+            if let Some(tmp_box) = object.bounding_box(time0, time1) {
+                output_box = match output_box {
+                    Some(output_box) => Some(output_box.include(&tmp_box)),
+                    None => Some(tmp_box),
+                };
+            } else {
+                return None;
+            }
+        }
+
+        output_box
+    }
 }
 
 
@@ -56,4 +76,6 @@ impl Hit for World {
 */
 pub trait Hit : Sync {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
+
+    fn bounding_box(&self, time0: f32, time1: f32) -> Option<Aabb>;
 }
