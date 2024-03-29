@@ -49,14 +49,14 @@ impl Hit for World {
         tmp_rec
     }
     
-    fn bounding_box(&self, time0: f32, time1: f32) -> Option<Aabb> {
+    fn bounding_box(&self) -> Option<Aabb> {
         if self.is_empty() {
             return None;
         }
 
         let mut output_box : Option<Aabb> = None;
         for object in self {
-            if let Some(tmp_box) = object.bounding_box(time0, time1) {
+            if let Some(tmp_box) = object.bounding_box() {
                 output_box = match output_box {
                     Some(output_box) => Some(output_box.include(&tmp_box)),
                     None => Some(tmp_box),
@@ -77,5 +77,5 @@ impl Hit for World {
 pub trait Hit : Sync {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
 
-    fn bounding_box(&self, time0: f32, time1: f32) -> Option<Aabb>;
+    fn bounding_box(&self) -> Option<Aabb>;
 }

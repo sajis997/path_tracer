@@ -29,7 +29,8 @@ pub struct BvhNode {
     primitives_per_node: usize, // number of primitives in the node
     // if leaf node, index into the primitives array
     // if interior node, index into the right child in the node list
-    // as the left child is be default placed right after the parent node in the list
+    // as the left child is be default placed right after the parent 
+    // node in the list
     index: usize,
     split_axis: usize, // axis along which the node is split
     leaf: bool, // boolean flag to mark if it is a leaf node or not
@@ -53,7 +54,10 @@ impl BvhNode {
     }
 
     pub fn makeInterior(index: usize, split_axis: usize){
+
+        // index into the right child in the node list  
         this.index = index;
+        // the coordianate axis along which the node is split
         this.split_axis = split_axis;
         this.leaf = false;
     }

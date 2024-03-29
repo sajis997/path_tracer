@@ -72,7 +72,7 @@ impl<M: Scatter> Hit for Triangle<M> {
         }
     }
     
-    fn bounding_box(&self, time0: f32, time1: f32) -> Option<Aabb> {
+    fn bounding_box(&self) -> Option<Aabb> {
         
         // find the min and max of the x, y, and z coordinates of the triangle
         // add/sub epsilon to avoid infinitely thin bounding boxes

@@ -32,7 +32,10 @@ jobs:
     - name: Security audit
       uses: actions-rs/audit-check@v1
       with:
-          token: ${{ secrets.GITHUB_TOKEN }}                  
+          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check semver
+      uses: obi1kenobi/cargo-semver-checks-action@v2
+        
     - name: Test
       uses: actions-rs/cargo@v1
       with:

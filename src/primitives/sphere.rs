@@ -58,7 +58,7 @@ impl<M: Scatter> Hit for Sphere<M> {
         Some(rec)
     }
     
-    fn bounding_box(&self, time0: f32, time1: f32) -> Option<Aabb> {
+    fn bounding_box(&self) -> Option<Aabb> {
         //return the bounding box of the sphere 
         // that is already calculated in the constructor
         let r = Vec3::new(self.radius, self.radius, self.radius);
