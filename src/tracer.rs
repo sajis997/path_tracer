@@ -3,16 +3,12 @@ use indicatif::{ParallelProgressIterator, ProgressBar};
 use rayon::prelude::*;
 use rand::prelude::*;
 
-use util::{Color,Util};
-use camera::Camera;
-use hit::{Hit, World};
-use ray::Ray;
+use crate::utils::util::{Color,Util};
+use crate::camera::Camera;
+use crate::hit::{Hit, World};
+use crate::ray::Ray;
 use std::{fs, path::Path};
 use std::sync::RwLock;
-
-
-use crate::{util, camera, hit,ray};
-
 
 pub struct Tracer {
 

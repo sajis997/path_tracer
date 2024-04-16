@@ -2,8 +2,8 @@ use glam::Vec3;
 
 use crate::material::Scatter;
 use crate::ray::Ray;
-use crate::util::Point3;
-use crate::aabb::Aabb;
+use crate::utils::util::Point3;
+use crate::utils::aabb::Aabb;
 
 pub struct HitRecord<'a> {
     pub p: Point3,
@@ -55,6 +55,7 @@ impl Hit for World {
         }
 
         let mut output_box : Option<Aabb> = None;
+        
         for object in self {
             if let Some(tmp_box) = object.bounding_box() {
                 output_box = match output_box {
@@ -68,6 +69,19 @@ impl Hit for World {
 
         output_box
     }
+
+    // get the centroid of the world
+    fn centroid(&self) -> Point3 {
+        let mut centroid = Point3::new(0.0, 0.0, 0.0);
+        let mut count = 0;
+
+        for object in self {
+            centroid += object.centroid();
+            count += 1;
+        }
+
+        centroid / count as f32
+    }
 }
 
 
@@ -78,4 +92,6 @@ pub trait Hit : Sync {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
 
     fn bounding_box(&self) -> Option<Aabb>;
+
+    fn centroid(&self) -> Point3;
 }

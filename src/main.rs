@@ -4,29 +4,31 @@
 // in the following places:
 // 1. src/*
 
-mod aabb;
-mod axis;
+
 mod camera;
 mod hit;
 mod material;
 mod ray;
-mod util;
+mod utils;
 mod tracer;
 mod primitives;
+mod accelerators;
 
 // the following use keywords will bring the paths into the scope
 use camera::Camera;
 use hit::World;
 use material::{Dielectric, Lambertian, Metal};
 use primitives::sphere::Sphere;
+use accelerators::accelerator::Accelerator;
+use accelerators::bvh;
 
 
 use glam::Vec3;
 use indicatif::{ProgressBar, ProgressFinish, ProgressStyle};
 use rand::prelude::*;
-use util::Color;
-use util::Point3;
-use util::Util;
+use utils::util::Color;
+use utils::util::Point3;
+use utils::util::Util;
 
 use tracer::Tracer;
 
@@ -100,6 +102,12 @@ const IMAGE_FILE_NAME: &str = "parallel-pixel-rendering.png";
 fn main() {
     //world
     let world = random_scene(); // crate an empty world
+
+    // create a new bvh instance
+    let mut bvh = bvh::Bvh::new(Some(4),Some(bvh::SplitMethod::Middle));
+
+    // build the bvh
+    bvh.build(&world);
 
     // Camera
     let lookfrom = Point3::new(13.0, 2.0, 3.0);

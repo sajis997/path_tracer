@@ -3,8 +3,8 @@ use glam::Vec3;
 use crate::hit::{Hit, HitRecord};
 use crate::material::Scatter;
 use crate::ray::Ray;
-use crate::util::Point3;
-use crate::aabb::Aabb;
+use crate::utils::util::Point3;
+use crate::utils::aabb::Aabb;
 
 pub struct Sphere<M: Scatter> {
     center: Point3,
@@ -65,4 +65,9 @@ impl<M: Scatter> Hit for Sphere<M> {
         let box_sphere = Aabb::new(self.center - r, self.center + r);        
         Some(box_sphere)
     }
+
+    // get the centroid of the sphere
+    fn centroid(&self) -> Point3 {
+        self.center
+    }    
 }

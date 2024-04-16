@@ -1,13 +1,14 @@
 use glam::Vec3;
 use std::fmt;
 
-use crate::axis::Axis;
-use crate::util::Point3;
+use crate::utils::axis::Axis;
+use crate::utils::util::Point3;
 use crate::hit::{Hit, HitRecord};
 use crate::ray::Ray;
 
 const DIMENSION : usize = 3;    
 
+#[derive(Clone)]
 // three dimensional axis aligned bounding box
 pub struct Aabb {
     min: Point3, // minimum coordinate
@@ -24,6 +25,16 @@ impl Aabb {
     // creates a new Aabb with given bounds
     pub fn new(min: Point3, max: Point3) -> Self {
         Self { min, max }
+    }
+
+    // returns the minimum coordinate of the bounding box
+    pub fn min(&self) -> Point3 {
+        self.min
+    }
+
+    // returns the maximum coordinate of the bounding box
+    pub fn max(&self) -> Point3 {
+        self.max
     }
 
     // returns true if the given ray intersects the bounding box
@@ -183,11 +194,11 @@ impl Aabb {
         }
     }
 
-    pub fn min(&self) -> Point3 {
+    pub fn get_min(&self) -> Point3 {
         self.min
     }
 
-    pub fn max(&self) -> Point3 {
+    pub fn get_max(&self) -> Point3 {
         self.max
     }   
 }

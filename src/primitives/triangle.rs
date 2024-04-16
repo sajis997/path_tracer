@@ -1,10 +1,10 @@
-use glam::Vec3;
+
 use crate::hit::Hit;
 use crate::ray::Ray;
-use crate::util::Point3;
+use crate::utils::util::Point3;
 use crate::material::Scatter;
 use crate::hit::HitRecord;
-use crate::aabb::Aabb;
+use crate::utils::aabb::Aabb;
 
 pub struct Triangle<M: Scatter> {
     vertices: [Point3; 3],
@@ -90,4 +90,9 @@ impl<M: Scatter> Hit for Triangle<M> {
 
         Some(Aabb::new(min, max))       
     }
+
+    // get the centroid of the triangle
+    fn centroid(&self) -> Point3 {
+        (self.vertices[0] + self.vertices[1] + self.vertices[2]) / 3.0
+    }    
 }
