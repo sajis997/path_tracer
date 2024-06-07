@@ -79,7 +79,8 @@ impl Tracer {
             },
             Err(_) => panic!("Error locking the image buffer"),
         }
-    }
+    
+       }
 
     pub fn save(&self,image_path: &str, file_name: &str){
         let folder_creation = fs::create_dir_all(image_path);
