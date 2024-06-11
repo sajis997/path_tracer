@@ -2,9 +2,9 @@ use rand::Rng;
 
 use crate::hit::HitRecord;
 use crate::ray::Ray;
-use crate::util::{Color, Util};
+use crate::utils::util::{Color, Util};
 
-pub trait Scatter: Send + Sync {
+pub trait Scatter: Sync {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)>;
 }
 

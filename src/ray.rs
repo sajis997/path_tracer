@@ -1,6 +1,6 @@
 use glam::Vec3;
 
-use crate::util::Point3;
+use crate::utils::util::Point3;
 
 pub struct Ray {
     origo: Point3,

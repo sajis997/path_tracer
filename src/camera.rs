@@ -1,6 +1,6 @@
 use glam::Vec3;
 use crate::ray::Ray;
-use crate::util::{Point3, Util};
+use crate::utils::util::{Point3, Util};
 
 /*
     Develop the camera incrementaly

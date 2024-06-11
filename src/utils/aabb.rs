@@ -1,9 +1,14 @@
 use glam::Vec3;
 use std::fmt;
 
-use crate::axis::Axis;
-use crate::util::Point3;
+use crate::utils::axis::Axis;
+use crate::utils::util::Point3;
+use crate::hit::{Hit, HitRecord};
+use crate::ray::Ray;
 
+const DIMENSION : usize = 3;    
+
+#[derive(Clone)]
 // three dimensional axis aligned bounding box
 pub struct Aabb {
     min: Point3, // minimum coordinate
@@ -20,6 +25,41 @@ impl Aabb {
     // creates a new Aabb with given bounds
     pub fn new(min: Point3, max: Point3) -> Self {
         Self { min, max }
+    }
+
+    // returns the minimum coordinate of the bounding box
+    pub fn min(&self) -> Point3 {
+        self.min
+    }
+
+    // returns the maximum coordinate of the bounding box
+    pub fn max(&self) -> Point3 {
+        self.max
+    }
+
+    // returns true if the given ray intersects the bounding box
+    pub fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> bool {
+        let mut t_min = t_min;
+        let mut t_max = t_max;
+
+        for i in 0..DIMENSION {
+            let inv_d = 1.0 / r.direction()[i];
+            let mut t0 = (self.min[i] - r.origin()[i]) * inv_d;
+            let mut t1 = (self.max[i] - r.origin()[i]) * inv_d;
+
+            if inv_d < 0.0 {
+                std::mem::swap(&mut t0, &mut t1);
+            }
+
+            t_min = t_min.max(t0);
+            t_max = t_max.min(t1);
+
+            if t_max <= t_min {
+                return false;
+            }
+        }
+
+        true
     }
 
     // creates an empty bounding box
@@ -153,7 +193,17 @@ impl Aabb {
             Axis::Z
         }
     }
+
+    pub fn get_min(&self) -> Point3 {
+        self.min
+    }
+
+    pub fn get_max(&self) -> Point3 {
+        self.max
+    }   
 }
+
+
 
 #[cfg(test)]
 mod tests {
