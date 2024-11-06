@@ -128,17 +128,9 @@ fn main() {
 
     let tracer = Tracer::new(IMAGE_WIDTH,IMAGE_HEIGHT,SAMPLES_PER_PIXEL);
 
-    let style = ProgressStyle::default_bar().template(
-        "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
-    );  
-    let progress_bar = ProgressBar::new((IMAGE_WIDTH * IMAGE_HEIGHT) as u64);
-    progress_bar.set_style(style.unwrap().progress_chars("#>-"));
-    
-
     println!("Rendering Scene ...");
-    tracer.trace(&cam, &world, &progress_bar ,MAX_DEPTH);
+    tracer.trace(&cam, &world, MAX_DEPTH);
 
-    progress_bar.with_finish(ProgressFinish::WithMessage("\nScene Rendering Completed.".into()));       
-
+    println!("Saving Image ...");
     tracer.save(IMAGE_OUT_DIR, IMAGE_FILE_NAME);
 }
