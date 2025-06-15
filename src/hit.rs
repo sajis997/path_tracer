@@ -73,7 +73,7 @@ impl Hit for World {
     // get the centroid of the world
     fn centroid(&self) -> Point3 {
         let mut centroid = Point3::new(0.0, 0.0, 0.0);
-        let mut count = 0;
+        let mut count: usize = 0;
 
         for object in self {
             centroid += object.centroid();

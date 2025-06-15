@@ -97,7 +97,7 @@ const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 1000;
 const MAX_DEPTH: u32 = 100;
 const IMAGE_OUT_DIR: &str = "output";
-const IMAGE_FILE_NAME: &str = "parallel-pixel-rendering.png";
+const IMAGE_FILE_NAME: &str = "rendering-1024X.png";
 
 fn main() {
     //world
@@ -128,6 +128,8 @@ fn main() {
 
     let tracer = Tracer::new(IMAGE_WIDTH,IMAGE_HEIGHT,SAMPLES_PER_PIXEL);
 
+    println!("Image Resolution: {}x{}", IMAGE_WIDTH, IMAGE_HEIGHT);
+    println!("Image will be saved at: {}/{}", IMAGE_OUT_DIR, IMAGE_FILE_NAME);
     println!("Rendering Scene ...");
     tracer.trace(&cam, &world, MAX_DEPTH);
 
