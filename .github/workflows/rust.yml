@@ -1,8 +1,8 @@
 name: Rust
 
 on:
-  push:    
-  pull_request:    
+  push:
+  pull_request:
 
 env:
   CARGO_TERM_COLOR: always
@@ -16,46 +16,43 @@ jobs:
         rust: [stable]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: ${{ matrix.rust }}
-        override: true
-    - name: Cache Dependencies
-      uses: actions/cache@v2
-      with:
-        path: | 
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-
-    - name: Check
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-    - name: Install cargo-audit binary crate
-      uses: actions-rs/install@v0.1
-      with:
+      - uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+            ~/.rustup
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: Install cargo-audit binary crate
+        uses: actions-rs/install@v0.1
+        with:
           crate: cargo-audit
           version: latest
           use-tool-cache: true
-    - name: Security audit
-      uses: actions-rs/audit-check@v1
-      with:
-          token: ${{ secrets.GITHUB_TOKEN }}        
-    - name: Test
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-    - name: Run Clippy
-      uses: actions-rs/clippy-check@v1
-      with: 
-        token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --release
+      - name: Security audit
+        uses: actions-rs/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+      - name: Run Clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release

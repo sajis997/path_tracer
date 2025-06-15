@@ -1,18 +1,14 @@
 use image::{Rgb, RgbImage};
-use indicatif::{ParallelProgressIterator, ProgressBar};
+use indicatif::{ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle};
 use rayon::prelude::*;
 use rand::prelude::*;
 
-use util::{Color,Util};
-use camera::Camera;
-use hit::{Hit, World};
-use ray::Ray;
+use crate::utils::util::{Color,Util};
+use crate::camera::Camera;
+use crate::hit::{Hit, World};
+use crate::ray::Ray;
 use std::{fs, path::Path};
 use std::sync::RwLock;
-
-
-use crate::{util, camera, hit,ray};
-
 
 pub struct Tracer {
 
@@ -40,49 +36,59 @@ impl Tracer {
         if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
-    
-        if let Some(rec) = world.hit(r, 0.001, f32::INFINITY) {
-            if let Some((attenuation, scattered)) = rec.mat.scatter(r, &rec) {
-                attenuation * self.ray_color(&scattered, world, depth - 1)
-            } else {
-                Color::new(0.0, 0.0, 0.0)
+
+        match world.hit(r,0.001, f32::INFINITY) {
+            Some(rec) => {
+                match rec.mat.scatter(r,&rec) {
+                    Some((attenuation, scattered)) => attenuation * self.ray_color(&scattered, world, depth - 1),
+                    None => Color::new(0.0, 0.0, 0.0),
+                }
+            },
+            None => {
+                let unit_direction = r.direction().normalize();
+                let t = 0.5 * (unit_direction.y + 1.0);
+                (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
             }
-        } else {
-            let unit_direction = r.direction().normalize();
-            let t = 0.5 * (unit_direction.y + 1.0);
-            (1.0 - t) * Color::new(1.0, 1.0, 1.0) + t * Color::new(0.5, 0.7, 1.0)
         }
     }
 
-    pub fn trace(&self, cam: &Camera, world: &World, bar: &ProgressBar ,max_depth: u32) {
-        
+    pub fn trace(&self, cam: &Camera, world: &World, max_depth: u32) {
+
+        let style = ProgressStyle::default_bar().template(
+            "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
+        );
+        let progress_bar = ProgressBar::new((self.image_width * self.image_height) as u64);
+        progress_bar.set_style(style.unwrap().progress_chars("#>-"));
+
         match self.image_buffer.write() {
             Ok(mut locked_buffer) => {
                 locked_buffer
                     .par_enumerate_pixels_mut()
-                    .progress_with(bar.clone())                    
+                    .progress_with(progress_bar.clone())
                     .for_each(|( x, y,px_out)| {
 
                         let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                        let mut rng = rand::thread_rng();
 
-                        for _ in 0..self.samples_per_pixel {
-                            let mut rng = rand::thread_rng();
-            
-                            let random_u: f32 = rng.gen();
-                            let random_v: f32 = rng.gen();
-            
-                            let u = ((x as f32) + random_u) / ((self.image_width - 1) as f32);
-                            let v = 1.0 - (((y as f32) + random_v) / ((self.image_height - 1) as f32));
+                        // generate random samples
+                        let random_samples : Vec<(f32, f32)> = (0..self.samples_per_pixel)
+                            .map(|_| (rng.gen(), rng.gen()))
+                            .collect();
+
+                        for (random_U,random_V) in random_samples {
+
+                            let u = ((x as f32) + random_U) / ((self.image_width - 1) as f32);
+                            let v = 1.0 - (((y as f32) + random_V) / ((self.image_height - 1) as f32));
                             let ray = cam.get_ray(u, v); 
             
                             pixel_color += self.ray_color(&ray, &world, max_depth);                       
                         }
-
                         *px_out = Rgb(Util::gamma_correction(&pixel_color, self.samples_per_pixel));
                     });
             },
             Err(_) => panic!("Error locking the image buffer"),
         }
+        progress_bar.with_finish(ProgressFinish::WithMessage("\nScene Rendering Completed.".into()));
     }
 
     pub fn save(&self,image_path: &str, file_name: &str){

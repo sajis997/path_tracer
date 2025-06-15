@@ -15,6 +15,16 @@ pub enum Axis {
     Z = 2,
 }
 
+impl Axis {
+    pub fn to_usize(&self) -> usize {
+        match self {
+            Axis::X => 0,
+            Axis::Y => 1,
+            Axis::Z => 2,
+        }
+    }
+}
+
 impl Display for Axis {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(

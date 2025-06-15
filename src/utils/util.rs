@@ -2,7 +2,6 @@ use glam::Vec3;
 use rand::prelude::*;
 use std::ops::Range;
 
-#[derive(Clone, Copy)]
 pub struct Util;
 
 pub type Point3 = Vec3; // give a new name to the existing type

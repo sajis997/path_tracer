@@ -4,30 +4,31 @@
 // in the following places:
 // 1. src/*
 
-mod aabb;
-mod axis;
+
 mod camera;
 mod hit;
 mod material;
 mod ray;
-mod sphere;
-mod util;
+mod utils;
 mod tracer;
+mod primitives;
+mod accelerators;
 
 // the following use keywords will bring the paths into the scope
 use camera::Camera;
 use hit::World;
 use material::{Dielectric, Lambertian, Metal};
-use sphere::Sphere;
+use primitives::sphere::Sphere;
+use accelerators::accelerator::Accelerator;
+use accelerators::bvh;
 
 
 use glam::Vec3;
 use indicatif::{ProgressBar, ProgressFinish, ProgressStyle};
 use rand::prelude::*;
-use util::Color;
-use util::Point3;
-use util::Util;
-use std::sync::Arc;
+use utils::util::Color;
+use utils::util::Point3;
+use utils::util::Util;
 
 use tracer::Tracer;
 
@@ -35,7 +36,7 @@ fn random_scene() -> World {
     let mut rng = rand::thread_rng();
     let mut world = World::with_capacity(550);
 
-    let ground_mat = Arc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    let ground_mat = Lambertian::new(Color::new(0.5, 0.5, 0.5));
     let ground_sphere = Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_mat);
 
     world.push(Box::new(ground_sphere));
@@ -52,7 +53,7 @@ fn random_scene() -> World {
             if choose_mat < 0.8 {
                 // Diffuse
                 let albedo = Util::random(0.0..1.0) * Util::random(0.0..1.0);
-                let sphere_mat = Arc::new(Lambertian::new(albedo));
+                let sphere_mat = Lambertian::new(albedo);
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
 
                 world.push(Box::new(sphere));
@@ -60,13 +61,13 @@ fn random_scene() -> World {
                 // Metal
                 let albedo = Util::random(0.4..1.0);
                 let fuzz = rng.gen_range(0.0..0.5);
-                let sphere_mat = Arc::new(Metal::new(albedo, fuzz));
+                let sphere_mat = Metal::new(albedo, fuzz);
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
 
                 world.push(Box::new(sphere));
             } else {
                 // Glass
-                let sphere_mat = Arc::new(Dielectric::new(1.5));
+                let sphere_mat = Dielectric::new(1.5);
                 let sphere = Sphere::new(center, 0.2, sphere_mat);
 
                 world.push(Box::new(sphere));
@@ -74,9 +75,9 @@ fn random_scene() -> World {
         }
     }
 
-    let mat1 = Arc::new(Dielectric::new(1.5));
-    let mat2 = Arc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
-    let mat3 = Arc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    let mat1 = Dielectric::new(1.5);
+    let mat2 = Lambertian::new(Color::new(0.4, 0.2, 0.1));
+    let mat3 = Metal::new(Color::new(0.7, 0.6, 0.5), 0.0);
 
     let sphere1 = Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, mat1);
     let sphere2 = Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, mat2);
@@ -96,11 +97,17 @@ const IMAGE_HEIGHT: u32 = ((IMAGE_WIDTH as f32) / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: u32 = 1000;
 const MAX_DEPTH: u32 = 100;
 const IMAGE_OUT_DIR: &str = "output";
-const IMAGE_FILE_NAME: &str = "parallel-pixel-rendering.png";
+const IMAGE_FILE_NAME: &str = "rendering-1024X.png";
 
 fn main() {
     //world
     let world = random_scene(); // crate an empty world
+
+    // create a new bvh instance
+    let mut bvh = bvh::Bvh::new(Some(4),Some(bvh::SplitMethod::Middle));
+
+    // build the bvh
+    bvh.build(&world);
 
     // Camera
     let lookfrom = Point3::new(13.0, 2.0, 3.0);
@@ -121,17 +128,11 @@ fn main() {
 
     let tracer = Tracer::new(IMAGE_WIDTH,IMAGE_HEIGHT,SAMPLES_PER_PIXEL);
 
-    let style = ProgressStyle::default_bar().template(
-        "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
-    );  
-    let progress_bar = ProgressBar::new((IMAGE_WIDTH * IMAGE_HEIGHT) as u64);
-    progress_bar.set_style(style.unwrap().progress_chars("#>-"));
-    
-
+    println!("Image Resolution: {}x{}", IMAGE_WIDTH, IMAGE_HEIGHT);
+    println!("Image will be saved at: {}/{}", IMAGE_OUT_DIR, IMAGE_FILE_NAME);
     println!("Rendering Scene ...");
-    tracer.trace(&cam, &world, &progress_bar ,MAX_DEPTH);
+    tracer.trace(&cam, &world, MAX_DEPTH);
 
-    progress_bar.with_finish(ProgressFinish::WithMessage("\nScene Rendering Completed.".into()));       
-
+    println!("Saving Image ...");
     tracer.save(IMAGE_OUT_DIR, IMAGE_FILE_NAME);
 }
